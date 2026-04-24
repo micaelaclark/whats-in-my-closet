@@ -3,8 +3,8 @@ const { MongoClient, ObjectId } = require('mongodb')
 const path = require('path')
 
 const app = express()
-const PORT = 3000
-const MONGO_URI = 'mongodb://localhost:27017'
+const PORT = process.env.PORT || 3000
+const MONGO_URI = 'mongodb+srv://micaelaclark:34QvDx6XB5mp6LOS@closet-cluster.dlxr2q0.mongodb.net/?appName=closet-cluster'
 const DB_NAME = 'closet'
 const COLLECTIONS = ['pants', 'shirts', 'athletic', 'jackets']
 
