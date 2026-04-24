@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Closet</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -181,7 +182,8 @@
     }
     .form-grid .full { grid-column: 1 / -1; }
     .add-form input[type="text"],
-    .add-form input[type="number"] {
+    .add-form input[type="number"],
+    .add-form input[type="date"] {
       width: 100%;
       padding: 9px 12px;
       border: 1px solid #e0ddd8;
@@ -233,6 +235,31 @@
       transition: border-color 0.15s, color 0.15s;
     }
     .btn-cancel:hover { border-color: #bbb; color: #555; }
+
+    /* Chart */
+    .chart-section {
+      background: #fff;
+      border: 1px solid #e8e6e1;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 36px;
+    }
+    .chart-section h2 {
+      font-size: 1.15rem;
+      font-weight: 650;
+      color: #111;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+    .chart-subtitle {
+      font-size: 0.8rem;
+      color: #bbb;
+      margin-bottom: 20px;
+    }
+    .chart-wrap {
+      position: relative;
+      height: 480px;
+    }
   </style>
 </head>
 <body>
@@ -241,6 +268,15 @@
       <h1>My Closet</h1>
       <p>your wardrobe, tracked</p>
     </header>
+
+    <!-- Chart -->
+    <div class="chart-section">
+      <h2>Wardrobe at a Glance</h2>
+      <p class="chart-subtitle">days owned × times worn — hover for details</p>
+      <div class="chart-wrap">
+        <canvas id="wardrobe-chart"></canvas>
+      </div>
+    </div>
 
     <!-- Sections -->
     <div id="sections"></div>
@@ -323,6 +359,7 @@
               <input type="text" id="${collection}-brand" placeholder="Brand" />
               <input type="number" id="${collection}-timesWorn" placeholder="Times worn" min="0" />
               <input type="text" id="${collection}-notes" placeholder="Notes" class="full" />
+              <input type="date" id="${collection}-dateAdded" title="Date acquired" class="full" />
             </div>
             <label class="check-label">
               <input type="checkbox" id="${collection}-nuuly" /> Nuuly (rented)
@@ -336,14 +373,6 @@
     }
 
     let allData = { pants: [], shirts: [], athletic: [], jackets: [] }
-
-    async function loadAll() {
-      const results = await Promise.all(
-        COLLECTIONS.map(c => fetch(`/api/${c}`).then(r => r.json()))
-      )
-      COLLECTIONS.forEach((c, i) => { allData[c] = results[i] })
-      renderAll(allData)
-    }
 
     function renderAll(data) {
       const container = document.getElementById('sections')
@@ -371,6 +400,7 @@
           ? parseInt(document.getElementById(`${collection}-timesWorn`).value) : 0,
         notes: document.getElementById(`${collection}-notes`).value.trim() || undefined,
         nuuly: document.getElementById(`${collection}-nuuly`).checked || undefined,
+        dateAdded: document.getElementById(`${collection}-dateAdded`).value || undefined,
       }
       await fetch(`/api/${collection}`, {
         method: 'POST',
@@ -384,6 +414,65 @@
     async function deleteItem(collection, id) {
       await fetch(`/api/${collection}/${id}`, { method: 'DELETE' })
       await loadAll()
+    }
+
+    const COLLECTION_COLORS = {
+      pants: '#3a72c4', shirts: '#e87c30', athletic: '#4a7a4a', jackets: '#7c3aed'
+    }
+    let chartInstance = null
+
+    function renderChart() {
+      const today = new Date()
+      const datasets = COLLECTIONS.map(col => ({
+        label: LABELS[col],
+        data: (allData[col] || []).map(item => ({
+          x: item.dateAdded ? Math.floor((today - new Date(item.dateAdded)) / 86400000) : 0,
+          y: item.timesWorn || 0,
+          _name: item.name,
+          _brand: item.brand || '',
+          _hasDate: !!item.dateAdded,
+        })),
+        backgroundColor: COLLECTION_COLORS[col],
+        pointRadius: 8,
+        pointHoverRadius: 12,
+      }))
+
+      const ctx = document.getElementById('wardrobe-chart').getContext('2d')
+      if (chartInstance) chartInstance.destroy()
+      chartInstance = new Chart(ctx, {
+        type: 'scatter',
+        data: { datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'circle', color: '#555', font: { size: 12 } } },
+            tooltip: {
+              callbacks: {
+                label(ctx) {
+                  const d = ctx.raw
+                  const dateStr = d._hasDate ? `${ctx.parsed.x} days owned` : 'date unknown'
+                  const brand = d._brand ? ` · ${d._brand}` : ''
+                  return `${d._name}${brand} — worn ${ctx.parsed.y}x (${dateStr})`
+                }
+              }
+            }
+          },
+          scales: {
+            x: { title: { display: true, text: 'Days owned', color: '#999', font: { size: 11 } }, grid: { color: '#f0ede8' }, ticks: { color: '#bbb' }, beginAtZero: true },
+            y: { title: { display: true, text: 'Times worn', color: '#999', font: { size: 11 } }, grid: { color: '#f0ede8' }, ticks: { color: '#bbb' }, beginAtZero: true }
+          }
+        }
+      })
+    }
+
+    async function loadAll() {
+      const results = await Promise.all(
+        COLLECTIONS.map(c => fetch(`/api/${c}`).then(r => r.json()))
+      )
+      COLLECTIONS.forEach((c, i) => { allData[c] = results[i] })
+      renderAll(allData)
+      renderChart()
     }
 
     loadAll()
