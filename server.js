@@ -9,14 +9,17 @@ const DB_NAME = 'closet'
 const COLLECTIONS = ['pants', 'shirts', 'athletic', 'jackets']
 
 app.use(express.json())
-app.use(express.static(path.join(__dirname, 'public')))
+app.use(express.static(path.join(__dirname, 'Public')))
 
 let db
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 
 MongoClient.connect(MONGO_URI).then(client => {
   db = client.db(DB_NAME)
   console.log('Connected to MongoDB')
-  app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`))
+}).catch(err => {
+  console.error('MongoDB connection failed:', err.message)
 })
 
 // Get all items from a collection
