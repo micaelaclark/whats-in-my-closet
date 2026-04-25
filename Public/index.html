@@ -127,6 +127,20 @@
       padding: 2px 8px;
       letter-spacing: 0.02em;
     }
+    .card-wear {
+      background: none;
+      border: 1px solid #e0ddd8;
+      color: #aaa;
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+    .card-wear:hover { border-color: #4a7a4a; color: #4a7a4a; background: #f0f7f0; }
     .card-edit {
       background: none;
       border: none;
@@ -410,6 +424,7 @@
             <div class="card-name">${escHtml(item.name)}</div>
             <div class="card-meta">${brand}${worn}${nuuly}</div>
           </div>
+          <button class="card-wear" onclick="addWear('${collection}', '${item._id}')">+ wear</button>
           <button class="card-edit" onclick="openEditModal('${collection}', '${item._id}')" title="Edit">✎</button>
           <button class="card-delete" onclick="deleteItem('${collection}', '${item._id}')" title="Remove">×</button>
         </div>`
@@ -571,6 +586,11 @@
 
     function handleModalClick(e) {
       if (e.target === document.getElementById('edit-modal')) closeEditModal()
+    }
+
+    async function addWear(collection, id) {
+      await fetch(`/api/${collection}/${id}/wear`, { method: 'PATCH' })
+      await loadAll()
     }
 
     async function saveEdit() {
