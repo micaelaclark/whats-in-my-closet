@@ -24,6 +24,25 @@
       margin: 0 auto;
     }
 
+    .header-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .archive-nav-link {
+      font-size: 0.82rem;
+      color: #b09070;
+      text-decoration: none;
+      border: 1px solid #e0cfc0;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-family: 'DM Sans', inherit;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .archive-nav-link:hover { border-color: #b09070; color: #3d2c1e; background: #fdf5ec; }
+
     header {
       padding: 48px 0 32px;
       border-bottom: 1px solid #edddd0;
@@ -335,6 +354,19 @@
       transition: border-color 0.15s, color 0.15s;
     }
     .btn-cancel:hover { border-color: #b09070; color: #3d2c1e; }
+    .btn-archive {
+      margin-left: auto;
+      padding: 9px 16px;
+      background: none;
+      color: #b8844a;
+      border: 1px solid #e8c99a;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-family: 'DM Sans', inherit;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn-archive:hover { background: #fdf5ec; border-color: #b8844a; }
 
     /* Charts */
     .charts-row {
@@ -379,8 +411,13 @@
 <body>
   <div class="container">
     <header>
-      <h1>My Closet</h1>
-      <p>your wardrobe, tracked</p>
+      <div class="header-row">
+        <div>
+          <h1>My Closet</h1>
+          <p>your wardrobe, tracked</p>
+        </div>
+        <a href="/archive.html" class="archive-nav-link">Nuuly Archive</a>
+      </div>
     </header>
 
     <!-- Scatter chart -->
@@ -432,13 +469,14 @@
       <div class="form-actions">
         <button class="btn-submit" onclick="saveEdit()">Save</button>
         <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+        <button class="btn-archive" onclick="archiveItem()">Archive</button>
       </div>
     </div>
   </div>
 
   <script>
-    const COLLECTIONS = ['pants', 'shirts', 'jackets']
-    const LABELS = { pants: 'Pants', shirts: 'Shirts', jackets: 'Jackets' }
+    const COLLECTIONS = ['pants', 'shirts', 'athletic', 'jackets']
+    const LABELS = { pants: 'Pants', shirts: 'Shirts', athletic: 'Athletic', jackets: 'Jackets' }
 
     const COLOR_MAP = {
       black: '#1a1a1a', white: '#f5f5f0', grey: '#9e9e9e', gray: '#9e9e9e',
@@ -505,8 +543,9 @@
 
     function renderSection(collection, items) {
       const label = LABELS[collection]
-      const cards = items.length
-        ? items.map(i => renderCard(i, collection)).join('')
+      const active = items.filter(i => !i.archived)
+      const cards = active.length
+        ? active.map(i => renderCard(i, collection)).join('')
         : `<div class="empty-state">No items yet.</div>`
       const addCard = `
         <div class="card-add" onclick="toggleAddForm('${collection}')">
@@ -517,7 +556,7 @@
         <div class="section" id="section-${collection}">
           <div class="section-header">
             <h2>${label}</h2>
-            <span class="section-count">${items.length} item${items.length !== 1 ? 's' : ''}</span>
+            <span class="section-count">${active.length} item${active.length !== 1 ? 's' : ''}</span>
           </div>
           <div class="cards">${cards}${addCard}</div>
           <div class="add-form" id="add-form-${collection}">
@@ -540,7 +579,7 @@
         </div>`
     }
 
-    let allData = { pants: [], shirts: [], jackets: [] }
+    let allData = { pants: [], shirts: [], athletic: [], jackets: [] }
 
     function renderAll(data) {
       document.getElementById('sections').innerHTML =
@@ -593,7 +632,7 @@
       const today = new Date()
       const datasets = COLLECTIONS.map(col => ({
         label: LABELS[col],
-        data: (allData[col] || []).map(item => ({
+        data: (allData[col] || []).filter(i => !i.archived).map(item => ({
           x: item.dateAdded ? Math.floor((today - new Date(item.dateAdded)) / 86400000) : 0,
           y: item.timesWorn || 0,
           _name: item.name,
@@ -636,7 +675,7 @@
     function renderBrandChart() {
       const brandMap = {}
       COLLECTIONS.forEach(col => {
-        (allData[col] || []).forEach(item => {
+        (allData[col] || []).filter(i => !i.archived).forEach(item => {
           const b = (item.brand || 'Unknown').trim()
           if (!brandMap[b]) brandMap[b] = { count: 0, worn: 0 }
           brandMap[b].count++
@@ -680,7 +719,7 @@
     function renderColorChart() {
       const colorCount = {}
       COLLECTIONS.forEach(col => {
-        (allData[col] || []).forEach(item => {
+        (allData[col] || []).filter(i => !i.archived).forEach(item => {
           const colors = Array.isArray(item.color) ? item.color : (item.color ? [item.color] : [])
           colors.forEach(c => {
             const key = c.toLowerCase().trim()
@@ -761,6 +800,14 @@
 
     async function addWear(collection, id) {
       await fetch(`/api/${collection}/${id}/wear`, { method: 'PATCH' })
+      await loadAll()
+    }
+
+    async function archiveItem() {
+      const { collection, id } = editTarget
+      if (!collection || !id) return
+      await fetch(`/api/${collection}/${id}/archive`, { method: 'PATCH' })
+      closeEditModal()
       await loadAll()
     }
 

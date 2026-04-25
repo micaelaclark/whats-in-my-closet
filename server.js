@@ -68,6 +68,31 @@ app.put('/api/:collection/:id', async (req, res) => {
   }
 })
 
+// Archive / unarchive an item
+app.patch('/api/:collection/:id/archive', async (req, res) => {
+  try {
+    const result = await db.collection(req.params.collection).updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $set: { archived: true } }
+    )
+    res.json(result)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.patch('/api/:collection/:id/unarchive', async (req, res) => {
+  try {
+    const result = await db.collection(req.params.collection).updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $set: { archived: false } }
+    )
+    res.json(result)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // Delete an item
 app.delete('/api/:collection/:id', async (req, res) => {
   try {
