@@ -143,17 +143,18 @@
     .card-wear:hover { border-color: #4a7a4a; color: #4a7a4a; background: #f0f7f0; }
     .card-edit {
       background: none;
-      border: none;
-      color: #ccc;
-      font-size: 0.9rem;
+      border: 1px solid #e0ddd8;
+      color: #aaa;
+      font-size: 0.75rem;
       cursor: pointer;
-      padding: 4px 6px;
-      border-radius: 6px;
-      line-height: 1;
-      transition: color 0.15s, background 0.15s;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
       flex-shrink: 0;
     }
-    .card-edit:hover { color: #3a72c4; background: #eef4ff; }
+    .card-edit:hover { border-color: #3a72c4; color: #3a72c4; background: #eef4ff; }
     .card-delete {
       background: none;
       border: none;
@@ -425,7 +426,7 @@
             <div class="card-meta">${brand}${worn}${nuuly}</div>
           </div>
           <button class="card-wear" onclick="addWear('${collection}', '${item._id}')">+ wear</button>
-          <button class="card-edit" onclick="openEditModal('${collection}', '${item._id}')" title="Edit">✎</button>
+          <button class="card-edit" onclick="openEditModal('${collection}', '${item._id}')">edit</button>
           <button class="card-delete" onclick="deleteItem('${collection}', '${item._id}')" title="Remove">×</button>
         </div>`
     }
