@@ -632,13 +632,17 @@
       const today = new Date()
       const datasets = COLLECTIONS.map(col => ({
         label: LABELS[col],
-        data: (allData[col] || []).filter(i => !i.archived).map(item => ({
-          x: item.dateAdded ? Math.floor((today - new Date(item.dateAdded)) / 86400000) : 0,
-          y: item.timesWorn || 0,
-          _name: item.name,
-          _brand: item.brand || '',
-          _hasDate: !!item.dateAdded,
-        })),
+        data: (allData[col] || []).filter(i => !i.archived).map(item => {
+          const date = item.dateAdded
+            ? new Date(item.dateAdded)
+            : new Date(parseInt(String(item._id).substring(0, 8), 16) * 1000)
+          return {
+            x: Math.floor((today - date) / 86400000),
+            y: item.timesWorn || 0,
+            _name: item.name,
+            _brand: item.brand || '',
+          }
+        }),
         backgroundColor: COLLECTION_COLORS[col],
         pointRadius: 8,
         pointHoverRadius: 12,
@@ -657,9 +661,8 @@
               callbacks: {
                 label(ctx) {
                   const d = ctx.raw
-                  const dateStr = d._hasDate ? `${ctx.parsed.x} days owned` : 'date unknown'
                   const brand = d._brand ? ` · ${d._brand}` : ''
-                  return `${d._name}${brand} — worn ${ctx.parsed.y}x (${dateStr})`
+                  return `${d._name}${brand} — worn ${ctx.parsed.y}x (${ctx.parsed.x} days owned)`
                 }
               }
             }
