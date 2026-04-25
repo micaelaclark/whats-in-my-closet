@@ -17,11 +17,10 @@
     }
 
     .container {
-      max-width: 900px;
+      max-width: 960px;
       margin: 0 auto;
     }
 
-    /* Header */
     header {
       padding: 48px 0 32px;
       border-bottom: 1px solid #e8e6e1;
@@ -40,7 +39,6 @@
       letter-spacing: 0.01em;
     }
 
-    /* Sections */
     .section {
       margin-bottom: 36px;
     }
@@ -61,85 +59,134 @@
       color: #bbb;
     }
 
-    /* Cards */
+    /* Square card grid */
     .cards {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
     }
+
     .card {
       background: #fff;
       border: 1px solid #e8e6e1;
-      border-radius: 10px;
-      padding: 14px 16px;
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 1 / 1;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.15s, transform 0.12s;
+    }
+    .card:hover { border-color: #c8c4be; transform: translateY(-2px); }
+
+    .card-swatch {
+      flex: 1;
+      position: relative;
+      min-height: 0;
+    }
+    .card-swatch-fill {
+      position: absolute;
+      inset: 0;
+      opacity: 0.72;
+    }
+    .card-extra-dots {
+      position: absolute;
+      bottom: 7px;
+      left: 8px;
+      display: flex;
+      gap: 4px;
+    }
+    .card-delete {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(255,255,255,0.75);
+      border: none;
+      color: #999;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
-      gap: 14px;
-      transition: border-color 0.15s;
-    }
-    .card:hover { border-color: #d0cdc8; }
-    .card-dots {
-      display: flex;
-      gap: 5px;
+      justify-content: center;
+      line-height: 1;
+      transition: color 0.15s, background 0.15s;
       flex-shrink: 0;
+      padding: 0;
     }
-    .color-dot {
-      width: 13px;
-      height: 13px;
-      border-radius: 50%;
-      border: 1px solid rgba(0,0,0,0.1);
+    .card-delete:hover { color: #e05; background: #fff; }
+
+    .card-body {
+      padding: 8px 10px 9px;
+      background: #fff;
       flex-shrink: 0;
-    }
-    .card-info {
-      flex: 1;
-      min-width: 0;
     }
     .card-name {
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.78rem;
       color: #111;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      line-height: 1.3;
     }
-    .card-meta {
+    .card-meta-row {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-top: 3px;
+      gap: 5px;
+      margin-top: 2px;
       flex-wrap: wrap;
     }
     .card-brand {
-      font-size: 0.8rem;
+      font-size: 0.7rem;
       color: #999;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 70%;
     }
     .card-worn {
-      font-size: 0.78rem;
+      font-size: 0.68rem;
       color: #bbb;
+      white-space: nowrap;
     }
     .nuuly-badge {
-      font-size: 0.7rem;
+      font-size: 0.62rem;
       font-weight: 600;
       color: #7c3aed;
       background: #f3eeff;
       border: 1px solid #ddd6fe;
       border-radius: 20px;
-      padding: 2px 8px;
-      letter-spacing: 0.02em;
+      padding: 1px 6px;
     }
-    .card-delete {
-      background: none;
-      border: none;
-      color: #ccc;
-      font-size: 1.1rem;
-      cursor: pointer;
-      padding: 4px 6px;
-      border-radius: 6px;
-      line-height: 1;
-      transition: color 0.15s, background 0.15s;
+
+    .color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.5);
       flex-shrink: 0;
+      display: inline-block;
     }
-    .card-delete:hover { color: #e05;  background: #fff0f3; }
+
+    /* Add card (lives inside grid) */
+    .card-add {
+      border: 1.5px dashed #d0cdc8;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      gap: 5px;
+      aspect-ratio: 1 / 1;
+      border-radius: 12px;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .card-add:hover { border-color: #aaa; background: #faf9f7; }
+    .card-add-icon { font-size: 1.6rem; color: #ccc; line-height: 1; }
+    .card-add-label { font-size: 0.7rem; color: #bbb; }
 
     .empty-state {
       padding: 20px 0;
@@ -147,31 +194,14 @@
       font-size: 0.88rem;
     }
 
-    /* Add item toggle */
-    .add-toggle {
-      background: none;
-      border: 1px dashed #d0cdc8;
-      border-radius: 10px;
-      padding: 10px 16px;
-      width: 100%;
-      text-align: left;
-      font-size: 0.85rem;
-      color: #aaa;
-      cursor: pointer;
-      font-family: inherit;
-      margin-top: 8px;
-      transition: border-color 0.15s, color 0.15s;
-    }
-    .add-toggle:hover { border-color: #999; color: #555; }
-
-    /* Add item form */
+    /* Add form */
     .add-form {
       display: none;
       background: #fff;
       border: 1px solid #e8e6e1;
       border-radius: 10px;
       padding: 18px 20px;
-      margin-top: 8px;
+      margin-top: 10px;
     }
     .add-form.open { display: block; }
     .form-grid {
@@ -236,7 +266,15 @@
     }
     .btn-cancel:hover { border-color: #bbb; color: #555; }
 
-    /* Chart */
+    /* Charts */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+    @media (max-width: 620px) { .charts-row { grid-template-columns: 1fr; } }
+
     .chart-section {
       background: #fff;
       border: 1px solid #e8e6e1;
@@ -258,8 +296,11 @@
     }
     .chart-wrap {
       position: relative;
-      height: 480px;
+      height: 320px;
     }
+    .chart-wrap--scatter { height: 420px; }
+    .chart-wrap--brand { height: 260px; }
+    .chart-wrap--color { height: 260px; }
   </style>
 </head>
 <body>
@@ -269,16 +310,34 @@
       <p>your wardrobe, tracked</p>
     </header>
 
-    <!-- Chart -->
+    <!-- Scatter chart -->
     <div class="chart-section">
       <h2>Wardrobe at a Glance</h2>
       <p class="chart-subtitle">days owned × times worn — hover for details</p>
-      <div class="chart-wrap">
+      <div class="chart-wrap chart-wrap--scatter">
         <canvas id="wardrobe-chart"></canvas>
       </div>
     </div>
 
-    <!-- Sections -->
+    <!-- Brand + Color charts side by side -->
+    <div class="charts-row">
+      <div class="chart-section" style="margin-bottom:0">
+        <h2>Brand Insights</h2>
+        <p class="chart-subtitle">items owned &amp; times worn by brand</p>
+        <div class="chart-wrap chart-wrap--brand" id="brand-chart-wrap">
+          <canvas id="brand-chart"></canvas>
+        </div>
+      </div>
+      <div class="chart-section" style="margin-bottom:0">
+        <h2>Color Palette</h2>
+        <p class="chart-subtitle">color distribution across your wardrobe</p>
+        <div class="chart-wrap chart-wrap--color">
+          <canvas id="color-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clothing sections -->
     <div id="sections"></div>
   </div>
 
@@ -286,7 +345,6 @@
     const COLLECTIONS = ['pants', 'shirts', 'athletic', 'jackets']
     const LABELS = { pants: 'Pants', shirts: 'Shirts', athletic: 'Athletic', jackets: 'Jackets' }
 
-    // Color name → CSS color mapping
     const COLOR_MAP = {
       black: '#1a1a1a', white: '#f5f5f0', grey: '#9e9e9e', gray: '#9e9e9e',
       'light grey': '#d0d0d0', 'light gray': '#d0d0d0', 'dark grey': '#555', 'dark gray': '#555',
@@ -296,7 +354,7 @@
       maroon: '#6b2027', pink: '#e87aa0', blush: '#f0c4c4', mauve: '#c4879e',
       coral: '#e8705a', orange: '#e87c30', brown: '#7a5030', tan: '#c4a87a',
       camel: '#c49a5a', khaki: '#bfae7e', beige: '#e8dfc4', cream: '#f5f0e0',
-      ivory: '#f7f4ea', off_white: '#f0ede4', 'off-white': '#f0ede4',
+      ivory: '#f7f4ea', 'off-white': '#f0ede4',
       yellow: '#e8c830', gold: '#c8a830', olive: '#6b6b30', green: '#4a7a4a',
       sage: '#8aaa7a', mint: '#8ad4b4', teal: '#3a8a8a', emerald: '#2d7a50',
       forest: '#2a5a3a', purple: '#7c3aed', lavender: '#b09ae0', lilac: '#c4a8d4',
@@ -306,31 +364,39 @@
     }
 
     function colorToCss(name) {
-      const key = name.toLowerCase().trim()
-      return COLOR_MAP[key] || '#ccc'
+      return COLOR_MAP[name.toLowerCase().trim()] || '#ccc'
     }
 
-    function renderDot(colorName) {
+    function renderDot(colorName, size = 10) {
       const css = colorToCss(colorName)
-      const isGradient = css.startsWith('linear-gradient')
-      const style = isGradient ? `background: ${css};` : `background-color: ${css};`
-      return `<span class="color-dot" style="${style}" title="${colorName}"></span>`
+      const isGrad = css.startsWith('linear-gradient')
+      const style = isGrad ? `background:${css};` : `background-color:${css};`
+      return `<span class="color-dot" style="${style};width:${size}px;height:${size}px" title="${colorName}"></span>`
     }
 
     function renderCard(item, collection) {
       const colors = Array.isArray(item.color) ? item.color : (item.color ? [item.color] : [])
-      const dots = colors.map(renderDot).join('')
-      const worn = item.timesWorn != null ? `<span class="card-worn">Worn ${item.timesWorn}x</span>` : ''
-      const brand = item.brand ? `<span class="card-brand">${item.brand}</span>` : ''
+      const primary = colors[0] || ''
+      const primaryCss = primary ? colorToCss(primary) : '#e8e6e1'
+      const isGrad = primaryCss.startsWith('linear-gradient')
+      const swatchStyle = isGrad ? `background:${primaryCss};` : `background-color:${primaryCss};`
+      const extraDots = colors.length > 1
+        ? `<div class="card-extra-dots">${colors.map(c => renderDot(c, 9)).join('')}</div>`
+        : ''
+      const worn = item.timesWorn != null ? `<span class="card-worn">×${item.timesWorn}</span>` : ''
+      const brand = item.brand ? `<span class="card-brand">${escHtml(item.brand)}</span>` : ''
       const nuuly = item.nuuly ? `<span class="nuuly-badge">Nuuly</span>` : ''
       return `
         <div class="card">
-          <div class="card-dots">${dots || '<span class="color-dot" style="background:#eee"></span>'}</div>
-          <div class="card-info">
-            <div class="card-name">${escHtml(item.name)}</div>
-            <div class="card-meta">${brand}${worn}${nuuly}</div>
+          <div class="card-swatch">
+            <div class="card-swatch-fill" style="${swatchStyle}"></div>
+            ${extraDots}
+            <button class="card-delete" onclick="deleteItem('${collection}','${item._id}')" title="Remove">×</button>
           </div>
-          <button class="card-delete" onclick="deleteItem('${collection}', '${item._id}')" title="Remove">×</button>
+          <div class="card-body">
+            <div class="card-name">${escHtml(item.name)}</div>
+            <div class="card-meta-row">${brand}${worn}${nuuly}</div>
+          </div>
         </div>`
     }
 
@@ -343,15 +409,18 @@
       const cards = items.length
         ? items.map(i => renderCard(i, collection)).join('')
         : `<div class="empty-state">No items yet.</div>`
-
+      const addCard = `
+        <div class="card-add" onclick="toggleAddForm('${collection}')">
+          <span class="card-add-icon">+</span>
+          <span class="card-add-label">Add item</span>
+        </div>`
       return `
         <div class="section" id="section-${collection}">
           <div class="section-header">
             <h2>${label}</h2>
             <span class="section-count">${items.length} item${items.length !== 1 ? 's' : ''}</span>
           </div>
-          <div class="cards">${cards}</div>
-          <button class="add-toggle" onclick="toggleAddForm('${collection}')">+ Add item</button>
+          <div class="cards">${cards}${addCard}</div>
           <div class="add-form" id="add-form-${collection}">
             <div class="form-grid">
               <input type="text" id="${collection}-name" placeholder="Name (required)" required class="full" />
@@ -375,13 +444,12 @@
     let allData = { pants: [], shirts: [], athletic: [], jackets: [] }
 
     function renderAll(data) {
-      const container = document.getElementById('sections')
-      container.innerHTML = COLLECTIONS.map(c => renderSection(c, data[c] || [])).join('')
+      document.getElementById('sections').innerHTML =
+        COLLECTIONS.map(c => renderSection(c, data[c] || [])).join('')
     }
 
     function toggleAddForm(collection) {
-      const form = document.getElementById(`add-form-${collection}`)
-      form.classList.toggle('open')
+      document.getElementById(`add-form-${collection}`).classList.toggle('open')
     }
 
     async function addItem(collection) {
@@ -408,7 +476,6 @@
         body: JSON.stringify(body),
       })
       await loadAll()
-      // re-open form is handled by loadAll re-rendering
     }
 
     async function deleteItem(collection, id) {
@@ -419,9 +486,11 @@
     const COLLECTION_COLORS = {
       pants: '#3a72c4', shirts: '#e87c30', athletic: '#4a7a4a', jackets: '#7c3aed'
     }
-    let chartInstance = null
+    let scatterChart = null
+    let brandChart = null
+    let colorChart = null
 
-    function renderChart() {
+    function renderScatterChart() {
       const today = new Date()
       const datasets = COLLECTIONS.map(col => ({
         label: LABELS[col],
@@ -436,10 +505,9 @@
         pointRadius: 8,
         pointHoverRadius: 12,
       }))
-
       const ctx = document.getElementById('wardrobe-chart').getContext('2d')
-      if (chartInstance) chartInstance.destroy()
-      chartInstance = new Chart(ctx, {
+      if (scatterChart) scatterChart.destroy()
+      scatterChart = new Chart(ctx, {
         type: 'scatter',
         data: { datasets },
         options: {
@@ -466,13 +534,115 @@
       })
     }
 
+    function renderBrandChart() {
+      const brandMap = {}
+      COLLECTIONS.forEach(col => {
+        (allData[col] || []).forEach(item => {
+          const b = (item.brand || 'Unknown').trim()
+          if (!brandMap[b]) brandMap[b] = { count: 0, worn: 0 }
+          brandMap[b].count++
+          brandMap[b].worn += item.timesWorn || 0
+        })
+      })
+      const sorted = Object.entries(brandMap).sort((a, b) => b[1].count - a[1].count)
+      const labels = sorted.map(([b]) => b)
+      const counts = sorted.map(([, v]) => v.count)
+      const wornTotals = sorted.map(([, v]) => v.worn)
+
+      const wrap = document.getElementById('brand-chart-wrap')
+      wrap.style.height = Math.max(200, sorted.length * 44) + 'px'
+
+      const ctx = document.getElementById('brand-chart').getContext('2d')
+      if (brandChart) brandChart.destroy()
+      brandChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Items', data: counts, backgroundColor: '#1a1a1a', borderRadius: 4, barPercentage: 0.55 },
+            { label: 'Times worn', data: wornTotals, backgroundColor: '#c4a87a', borderRadius: 4, barPercentage: 0.55 },
+          ]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'circle', color: '#555', font: { size: 11 } } },
+          },
+          scales: {
+            x: { beginAtZero: true, grid: { color: '#f0ede8' }, ticks: { color: '#bbb', stepSize: 1 } },
+            y: { grid: { display: false }, ticks: { color: '#555', font: { size: 11 } } }
+          }
+        }
+      })
+    }
+
+    function renderColorChart() {
+      const colorCount = {}
+      COLLECTIONS.forEach(col => {
+        (allData[col] || []).forEach(item => {
+          const colors = Array.isArray(item.color) ? item.color : (item.color ? [item.color] : [])
+          colors.forEach(c => {
+            const key = c.toLowerCase().trim()
+            colorCount[key] = (colorCount[key] || 0) + 1
+          })
+        })
+      })
+      const sorted = Object.entries(colorCount).sort((a, b) => b[1] - a[1])
+      const labels = sorted.map(([c]) => c.charAt(0).toUpperCase() + c.slice(1))
+      const data = sorted.map(([, n]) => n)
+      const bgColors = sorted.map(([c]) => {
+        const css = colorToCss(c)
+        return css.startsWith('linear-gradient') ? '#ccc' : css
+      })
+      const borderColors = sorted.map(([c]) => {
+        const css = colorToCss(c)
+        if (css.startsWith('linear-gradient')) return '#ccc'
+        return css === '#f5f5f0' ? '#e0ddd8' : css
+      })
+
+      const ctx = document.getElementById('color-chart').getContext('2d')
+      if (colorChart) colorChart.destroy()
+      colorChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{
+            data,
+            backgroundColor: bgColors,
+            borderColor: borderColors,
+            borderWidth: 2,
+            hoverOffset: 8,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: { usePointStyle: true, pointStyle: 'circle', color: '#555', font: { size: 11 }, padding: 12 }
+            },
+            tooltip: {
+              callbacks: {
+                label(ctx) { return ` ${ctx.label}: ${ctx.raw} item${ctx.raw !== 1 ? 's' : ''}` }
+              }
+            }
+          }
+        }
+      })
+    }
+
     async function loadAll() {
       const results = await Promise.all(
         COLLECTIONS.map(c => fetch(`/api/${c}`).then(r => r.json()))
       )
       COLLECTIONS.forEach((c, i) => { allData[c] = results[i] })
       renderAll(allData)
-      renderChart()
+      renderScatterChart()
+      renderBrandChart()
+      renderColorChart()
     }
 
     loadAll()
