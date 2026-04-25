@@ -41,6 +41,33 @@ app.post('/api/:collection', async (req, res) => {
   }
 })
 
+// Increment wear count
+app.patch('/api/:collection/:id/wear', async (req, res) => {
+  try {
+    const result = await db.collection(req.params.collection).updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $inc: { timesWorn: 1 } }
+    )
+    res.json(result)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Update an item
+app.put('/api/:collection/:id', async (req, res) => {
+  try {
+    const { _id, ...update } = req.body
+    const result = await db.collection(req.params.collection).updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $set: update }
+    )
+    res.json(result)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // Delete an item
 app.delete('/api/:collection/:id', async (req, res) => {
   try {
