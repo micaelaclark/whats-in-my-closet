@@ -127,6 +127,19 @@
       padding: 2px 8px;
       letter-spacing: 0.02em;
     }
+    .card-edit {
+      background: none;
+      border: none;
+      color: #ccc;
+      font-size: 0.9rem;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      line-height: 1;
+      transition: color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+    .card-edit:hover { color: #3a72c4; background: #eef4ff; }
     .card-delete {
       background: none;
       border: none;
@@ -140,6 +153,51 @@
       flex-shrink: 0;
     }
     .card-delete:hover { color: #e05;  background: #fff0f3; }
+
+    /* Edit modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+    }
+    .modal-title {
+      font-size: 1rem;
+      font-weight: 650;
+      color: #111;
+      margin-bottom: 16px;
+    }
+    .modal input[type="text"],
+    .modal input[type="number"],
+    .modal input[type="date"] {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #e0ddd8;
+      border-radius: 7px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      background: #faf9f7;
+      color: #1a1a1a;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .modal input[type="text"]:focus,
+    .modal input[type="number"]:focus,
+    .modal input[type="date"]:focus { border-color: #aaa; background: #fff; }
+    .modal input[type="checkbox"] { width: auto; accent-color: #7c3aed; }
 
     .empty-state {
       padding: 20px 0;
@@ -282,6 +340,28 @@
     <div id="sections"></div>
   </div>
 
+  <!-- Edit modal -->
+  <div class="modal-overlay" id="edit-modal" onclick="handleModalClick(event)">
+    <div class="modal">
+      <div class="modal-title">Edit item</div>
+      <div class="form-grid">
+        <input type="text" id="edit-name" placeholder="Name (required)" class="full" />
+        <input type="text" id="edit-color" placeholder="Colors, comma-separated (required)" />
+        <input type="text" id="edit-brand" placeholder="Brand" />
+        <input type="number" id="edit-timesWorn" placeholder="Times worn" min="0" />
+        <input type="text" id="edit-notes" placeholder="Notes" class="full" />
+        <input type="date" id="edit-dateAdded" class="full" />
+      </div>
+      <label class="check-label" style="margin-top: 8px;">
+        <input type="checkbox" id="edit-nuuly" /> Nuuly (rented)
+      </label>
+      <div class="form-actions">
+        <button class="btn-submit" onclick="saveEdit()">Save</button>
+        <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const COLLECTIONS = ['pants', 'shirts', 'athletic', 'jackets']
     const LABELS = { pants: 'Pants', shirts: 'Shirts', athletic: 'Athletic', jackets: 'Jackets' }
@@ -330,6 +410,7 @@
             <div class="card-name">${escHtml(item.name)}</div>
             <div class="card-meta">${brand}${worn}${nuuly}</div>
           </div>
+          <button class="card-edit" onclick="openEditModal('${collection}', '${item._id}')" title="Edit">✎</button>
           <button class="card-delete" onclick="deleteItem('${collection}', '${item._id}')" title="Remove">×</button>
         </div>`
     }
@@ -464,6 +545,61 @@
           }
         }
       })
+    }
+
+    let editTarget = { collection: null, id: null }
+
+    function openEditModal(collection, id) {
+      const item = (allData[collection] || []).find(i => String(i._id) === String(id))
+      if (!item) return
+      editTarget = { collection, id }
+      const colors = Array.isArray(item.color) ? item.color : (item.color ? [item.color] : [])
+      document.getElementById('edit-name').value = item.name || ''
+      document.getElementById('edit-color').value = colors.join(', ')
+      document.getElementById('edit-brand').value = item.brand || ''
+      document.getElementById('edit-timesWorn').value = item.timesWorn != null ? item.timesWorn : ''
+      document.getElementById('edit-notes').value = item.notes || ''
+      document.getElementById('edit-nuuly').checked = !!item.nuuly
+      document.getElementById('edit-dateAdded').value = item.dateAdded ? item.dateAdded.slice(0, 10) : ''
+      document.getElementById('edit-modal').classList.add('open')
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.remove('open')
+      editTarget = { collection: null, id: null }
+    }
+
+    function handleModalClick(e) {
+      if (e.target === document.getElementById('edit-modal')) closeEditModal()
+    }
+
+    async function saveEdit() {
+      const { collection, id } = editTarget
+      if (!collection || !id) return
+      const nameEl = document.getElementById('edit-name')
+      const colorEl = document.getElementById('edit-color')
+      if (!nameEl.value.trim() || !colorEl.value.trim()) {
+        nameEl.style.borderColor = nameEl.value.trim() ? '' : '#e05'
+        colorEl.style.borderColor = colorEl.value.trim() ? '' : '#e05'
+        return
+      }
+      const body = {
+        name: nameEl.value.trim(),
+        color: colorEl.value.split(',').map(c => c.trim()).filter(Boolean),
+        brand: document.getElementById('edit-brand').value.trim() || undefined,
+        timesWorn: document.getElementById('edit-timesWorn').value
+          ? parseInt(document.getElementById('edit-timesWorn').value) : 0,
+        notes: document.getElementById('edit-notes').value.trim() || undefined,
+        nuuly: document.getElementById('edit-nuuly').checked || undefined,
+        dateAdded: document.getElementById('edit-dateAdded').value || undefined,
+      }
+      await fetch(`/api/${collection}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      closeEditModal()
+      await loadAll()
     }
 
     async function loadAll() {
