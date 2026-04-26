@@ -741,15 +741,15 @@
 
     async function addItem(collection) {
       const nameEl = document.getElementById(`${collection}-name`)
-      const colorEl = document.getElementById(`${collection}-color`)
-      if (!nameEl.value.trim() || !colorEl.value.trim()) {
-        nameEl.style.borderColor = nameEl.value.trim() ? '' : '#e05'
-        colorEl.style.borderColor = colorEl.value.trim() ? '' : '#e05'
+      if (!nameEl.value.trim()) {
+        nameEl.style.borderColor = '#e05'
         return
       }
+      nameEl.style.borderColor = ''
+      const colorVal = document.getElementById(`${collection}-color`).value.trim()
       const body = {
         name: nameEl.value.trim(),
-        color: colorEl.value.trim(),
+        color: colorVal ? [colorVal] : undefined,
         subcolor: document.getElementById(`${collection}-subcolor`).value.trim() || undefined,
         brand: document.getElementById(`${collection}-brand`).value.trim() || undefined,
         timesWorn: document.getElementById(`${collection}-timesWorn`).value
@@ -761,11 +761,12 @@
         swap: document.getElementById(`${collection}-swap`).checked || undefined,
         dateAdded: document.getElementById(`${collection}-dateAdded`).value || undefined,
       }
-      await fetch(`/api/${collection}`, {
+      const res = await fetch(`/api/${collection}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
+      if (!res.ok) { alert('Failed to add item. Is the server running?'); return }
       await loadAll()
     }
 
@@ -1036,7 +1037,7 @@
       }
       const body = {
         name: nameEl.value.trim(),
-        color: colorEl.value.trim(),
+        color: colorEl.value.trim() ? [colorEl.value.trim()] : undefined,
         subcolor: document.getElementById('edit-subcolor').value.trim() || undefined,
         brand: document.getElementById('edit-brand').value.trim() || undefined,
         timesWorn: document.getElementById('edit-timesWorn').value
