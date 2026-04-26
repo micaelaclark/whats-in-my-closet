@@ -323,15 +323,17 @@
       const swap = item.swap ? `<span class="swap-badge">Swap</span>` : ''
       const reason = showReason && item.discardReason
         ? `<div class="card-reason">${escHtml(item.discardReason)}</div>` : ''
+      const badges = [nuuly, nuulyBought, thrift, swap].filter(Boolean).join('')
       return `
         <div class="card">
           <div class="card-swatch">
             <div class="card-swatch-fill" style="${swatchStyle}"></div>
             <button class="card-restore" onclick="unarchiveItem('${collection}','${item._id}')">restore</button>
+            ${badges ? `<div class="card-extra-dots">${badges}</div>` : ''}
           </div>
           <div class="card-body">
             <div class="card-name">${escHtml(item.name)}</div>
-            <div class="card-meta-row">${brand}${worn}${subcolorLabel}${nuuly}${nuulyBought}${thrift}${swap}</div>
+            <div class="card-meta-row">${brand}${worn}${subcolorLabel}</div>
             ${reason}
           </div>
         </div>`
