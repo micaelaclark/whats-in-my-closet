@@ -486,6 +486,26 @@
     .chart-wrap--scatter { height: 420px; }
     .chart-wrap--brand { height: 260px; }
     .chart-wrap--color { height: 260px; }
+
+    .chart-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 14px;
+    }
+    .chart-filter {
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 1px solid #e0cfc0;
+      background: none;
+      font-size: 0.72rem;
+      font-family: 'DM Sans', inherit;
+      color: #b09070;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .chart-filter:hover { border-color: #b09070; color: #3d2c1e; }
+    .chart-filter.active { background: #3d2c1e; border-color: #3d2c1e; color: #fff; }
   </style>
 </head>
 <body>
@@ -517,6 +537,7 @@
           <button id="brand-toggle" onclick="toggleBrands()" style="background:none;border:none;font-size:0.78rem;color:#b09070;font-family:'DM Sans',inherit;cursor:pointer;padding:0;transition:color 0.15s" onmouseover="this.style.color='#3d2c1e'" onmouseout="this.style.color='#b09070'">Show all</button>
         </div>
         <p class="chart-subtitle">items owned &amp; times worn by brand</p>
+        <div class="chart-filters" id="brand-filters"></div>
         <div class="chart-wrap chart-wrap--brand" id="brand-chart-wrap">
           <canvas id="brand-chart"></canvas>
         </div>
@@ -524,6 +545,7 @@
       <div class="chart-section" style="margin-bottom:0">
         <h2>Color Palette</h2>
         <p class="chart-subtitle">color distribution across your wardrobe</p>
+        <div class="chart-filters" id="color-filters"></div>
         <div class="chart-wrap chart-wrap--color">
           <canvas id="color-chart"></canvas>
         </div>
@@ -833,6 +855,25 @@
     }
 
     let showAllBrands = false
+    let brandCategory = 'all'
+    let colorCategory = 'all'
+
+    function renderFilterPills(containerId, activeCategory, callbackName) {
+      const filters = [['all', 'All'], ...COLLECTIONS.map(c => [c, LABELS[c]])]
+      document.getElementById(containerId).innerHTML = filters.map(([val, label]) =>
+        `<button class="chart-filter${activeCategory === val ? ' active' : ''}" onclick="${callbackName}('${val}')">${label}</button>`
+      ).join('')
+    }
+
+    function setBrandCategory(cat) {
+      brandCategory = cat
+      renderBrandChart()
+    }
+
+    function setColorCategory(cat) {
+      colorCategory = cat
+      renderColorChart()
+    }
 
     function toggleBrands() {
       showAllBrands = !showAllBrands
@@ -841,9 +882,11 @@
     }
 
     function renderBrandChart() {
+      renderFilterPills('brand-filters', brandCategory, 'setBrandCategory')
+      const cols = brandCategory === 'all' ? COLLECTIONS : [brandCategory]
       const brandMap = {}
       const brandItems = {}
-      COLLECTIONS.forEach(col => {
+      cols.forEach(col => {
         (allData[col] || []).filter(i => !i.archived).forEach(item => {
           const b = (item.brand || 'Unknown').trim()
           if (!brandMap[b]) { brandMap[b] = { count: 0, worn: 0 }; brandItems[b] = [] }
@@ -899,9 +942,11 @@
     }
 
     function renderColorChart() {
+      renderFilterPills('color-filters', colorCategory, 'setColorCategory')
+      const cols = colorCategory === 'all' ? COLLECTIONS : [colorCategory]
       const colorCount = {}
       const colorItems = {}
-      COLLECTIONS.forEach(col => {
+      cols.forEach(col => {
         (allData[col] || []).filter(i => !i.archived).forEach(item => {
           const mainColor = Array.isArray(item.color) ? item.color[0] : item.color
           if (!mainColor) return
