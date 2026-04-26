@@ -203,6 +203,24 @@
       border-radius: 20px;
       padding: 1px 6px;
     }
+    .nuuly-bought-badge {
+      font-size: 0.62rem;
+      font-weight: 600;
+      color: #5a2aad;
+      background: #ede8ff;
+      border: 1px solid #c8b8f8;
+      border-radius: 20px;
+      padding: 1px 6px;
+    }
+    .thrift-badge {
+      font-size: 0.62rem;
+      font-weight: 600;
+      color: #8a5a1a;
+      background: #fef3e2;
+      border: 1px solid #f0d098;
+      border-radius: 20px;
+      padding: 1px 6px;
+    }
 
     .color-dot {
       width: 10px;
@@ -532,7 +550,9 @@
           <input type="date" id="edit-dateAdded" class="full" />
         </div>
         <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;">
-          <label class="check-label"><input type="checkbox" id="edit-nuuly" /> Nuuly (rented)</label>
+          <label class="check-label"><input type="checkbox" id="edit-nuuly" /> Nuuly</label>
+          <label class="check-label"><input type="checkbox" id="edit-nuulyBought" /> Nuuly Bought</label>
+          <label class="check-label"><input type="checkbox" id="edit-thrift" /> Thrift</label>
           <label class="check-label"><input type="checkbox" id="edit-swap" /> Swap</label>
         </div>
         <div class="form-actions">
@@ -642,6 +662,8 @@
       const brand = item.brand ? `<span class="card-brand">${escHtml(item.brand)}</span>` : ''
       const subcolorLabel = sub ? `<span class="card-subcolor">${escHtml(sub)}</span>` : ''
       const nuuly = item.nuuly ? `<span class="nuuly-badge">Nuuly</span>` : ''
+      const nuulyBought = item.nuulyBought ? `<span class="nuuly-bought-badge">Nuuly Bought</span>` : ''
+      const thrift = item.thrift ? `<span class="thrift-badge">Thrift</span>` : ''
       const swap = item.swap ? `<span class="swap-badge">Swap</span>` : ''
       return `
         <div class="card">
@@ -651,7 +673,7 @@
           </div>
           <div class="card-body">
             <div class="card-name">${escHtml(item.name)}</div>
-            <div class="card-meta-row">${brand}${worn}${subcolorLabel}${nuuly}${swap}</div>
+            <div class="card-meta-row">${brand}${worn}${subcolorLabel}${nuuly}${nuulyBought}${thrift}${swap}</div>
             <div class="card-actions">
               <button class="card-action-btn card-action-btn--wear" onclick="addWear('${collection}','${item._id}')">+ wear</button>
               <button class="card-action-btn card-action-btn--edit" onclick="openEditModal('${collection}','${item._id}')">edit</button>
@@ -693,12 +715,10 @@
               <input type="date" id="${collection}-dateAdded" title="Date acquired" class="full" />
             </div>
             <div style="display:flex;gap:16px;flex-wrap:wrap;">
-              <label class="check-label">
-                <input type="checkbox" id="${collection}-nuuly" /> Nuuly (rented)
-              </label>
-              <label class="check-label">
-                <input type="checkbox" id="${collection}-swap" /> Swap
-              </label>
+              <label class="check-label"><input type="checkbox" id="${collection}-nuuly" /> Nuuly</label>
+              <label class="check-label"><input type="checkbox" id="${collection}-nuulyBought" /> Nuuly Bought</label>
+              <label class="check-label"><input type="checkbox" id="${collection}-thrift" /> Thrift</label>
+              <label class="check-label"><input type="checkbox" id="${collection}-swap" /> Swap</label>
             </div>
             <div class="form-actions">
               <button class="btn-submit" onclick="addItem('${collection}')">Add</button>
@@ -736,6 +756,8 @@
           ? parseInt(document.getElementById(`${collection}-timesWorn`).value) : 0,
         notes: document.getElementById(`${collection}-notes`).value.trim() || undefined,
         nuuly: document.getElementById(`${collection}-nuuly`).checked || undefined,
+        nuulyBought: document.getElementById(`${collection}-nuulyBought`).checked || undefined,
+        thrift: document.getElementById(`${collection}-thrift`).checked || undefined,
         swap: document.getElementById(`${collection}-swap`).checked || undefined,
         dateAdded: document.getElementById(`${collection}-dateAdded`).value || undefined,
       }
@@ -930,6 +952,8 @@
       document.getElementById('edit-timesWorn').value = item.timesWorn != null ? item.timesWorn : ''
       document.getElementById('edit-notes').value = item.notes || ''
       document.getElementById('edit-nuuly').checked = !!item.nuuly
+      document.getElementById('edit-nuulyBought').checked = !!item.nuulyBought
+      document.getElementById('edit-thrift').checked = !!item.thrift
       document.getElementById('edit-swap').checked = !!item.swap
       document.getElementById('edit-dateAdded').value = item.dateAdded ? item.dateAdded.slice(0, 10) : ''
       document.getElementById('edit-modal').classList.add('open')
@@ -1019,6 +1043,8 @@
           ? parseInt(document.getElementById('edit-timesWorn').value) : 0,
         notes: document.getElementById('edit-notes').value.trim() || undefined,
         nuuly: document.getElementById('edit-nuuly').checked || undefined,
+        nuulyBought: document.getElementById('edit-nuulyBought').checked || undefined,
+        thrift: document.getElementById('edit-thrift').checked || undefined,
         swap: document.getElementById('edit-swap').checked || undefined,
         dateAdded: document.getElementById('edit-dateAdded').value || undefined,
       }

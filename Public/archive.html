@@ -206,16 +206,10 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
-    .nuuly-badge {
-      font-size: 0.62rem; font-weight: 600; color: #7c3aed;
-      background: #f3eeff; border: 1px solid #ddd6fe;
-      border-radius: 20px; padding: 1px 6px;
-    }
-    .swap-badge {
-      font-size: 0.62rem; font-weight: 600; color: #2a7a5a;
-      background: #eefaf4; border: 1px solid #b6e8d2;
-      border-radius: 20px; padding: 1px 6px;
-    }
+    .nuuly-badge { font-size: 0.62rem; font-weight: 600; color: #7c3aed; background: #f3eeff; border: 1px solid #ddd6fe; border-radius: 20px; padding: 1px 6px; }
+    .nuuly-bought-badge { font-size: 0.62rem; font-weight: 600; color: #5a2aad; background: #ede8ff; border: 1px solid #c8b8f8; border-radius: 20px; padding: 1px 6px; }
+    .thrift-badge { font-size: 0.62rem; font-weight: 600; color: #8a5a1a; background: #fef3e2; border: 1px solid #f0d098; border-radius: 20px; padding: 1px 6px; }
+    .swap-badge { font-size: 0.62rem; font-weight: 600; color: #2a7a5a; background: #eefaf4; border: 1px solid #b6e8d2; border-radius: 20px; padding: 1px 6px; }
     .color-dot {
       width: 10px; height: 10px; border-radius: 50%;
       border: 1px solid rgba(255,255,255,0.5);
@@ -323,6 +317,8 @@
       const brand = item.brand ? `<span class="card-brand">${escHtml(item.brand)}</span>` : ''
       const subcolorLabel = sub ? `<span style="font-size:0.68rem;color:#a8957e">${escHtml(sub)}</span>` : ''
       const nuuly = item.nuuly ? `<span class="nuuly-badge">Nuuly</span>` : ''
+      const nuulyBought = item.nuulyBought ? `<span class="nuuly-bought-badge">Nuuly Bought</span>` : ''
+      const thrift = item.thrift ? `<span class="thrift-badge">Thrift</span>` : ''
       const swap = item.swap ? `<span class="swap-badge">Swap</span>` : ''
       const reason = showReason && item.discardReason
         ? `<div class="card-reason">${escHtml(item.discardReason)}</div>` : ''
@@ -334,7 +330,7 @@
           </div>
           <div class="card-body">
             <div class="card-name">${escHtml(item.name)}</div>
-            <div class="card-meta-row">${brand}${worn}${subcolorLabel}${nuuly}${swap}</div>
+            <div class="card-meta-row">${brand}${worn}${subcolorLabel}${nuuly}${nuulyBought}${thrift}${swap}</div>
             ${reason}
           </div>
         </div>`
