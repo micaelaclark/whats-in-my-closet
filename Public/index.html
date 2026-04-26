@@ -842,12 +842,14 @@
 
     function renderBrandChart() {
       const brandMap = {}
+      const brandItems = {}
       COLLECTIONS.forEach(col => {
         (allData[col] || []).filter(i => !i.archived).forEach(item => {
           const b = (item.brand || 'Unknown').trim()
-          if (!brandMap[b]) brandMap[b] = { count: 0, worn: 0 }
+          if (!brandMap[b]) { brandMap[b] = { count: 0, worn: 0 }; brandItems[b] = [] }
           brandMap[b].count++
           brandMap[b].worn += item.timesWorn || 0
+          brandItems[b].push(item.name)
         })
       })
       const all = Object.entries(brandMap).sort((a, b) => b[1].count - a[1].count)
@@ -878,6 +880,15 @@
           maintainAspectRatio: false,
           plugins: {
             legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'circle', color: '#555', font: { size: 11 } } },
+            tooltip: {
+              callbacks: {
+                afterBody(contexts) {
+                  const brand = contexts[0]?.chart.data.labels[contexts[0].dataIndex]
+                  const items = brandItems[brand] || []
+                  return items.length ? ['', ...items.map(n => `· ${n}`)] : []
+                }
+              }
+            }
           },
           scales: {
             x: { beginAtZero: true, grid: { color: '#f0ede8' }, ticks: { color: '#bbb', stepSize: 1 } },
@@ -889,12 +900,15 @@
 
     function renderColorChart() {
       const colorCount = {}
+      const colorItems = {}
       COLLECTIONS.forEach(col => {
         (allData[col] || []).filter(i => !i.archived).forEach(item => {
           const mainColor = Array.isArray(item.color) ? item.color[0] : item.color
           if (!mainColor) return
           const key = mainColor.toLowerCase().trim()
           colorCount[key] = (colorCount[key] || 0) + 1
+          if (!colorItems[key]) colorItems[key] = []
+          colorItems[key].push(item.name)
         })
       })
       const sorted = Object.entries(colorCount).sort((a, b) => b[1] - a[1])
@@ -934,7 +948,12 @@
             },
             tooltip: {
               callbacks: {
-                label(ctx) { return ` ${ctx.label}: ${ctx.raw} item${ctx.raw !== 1 ? 's' : ''}` }
+                label(ctx) { return ` ${ctx.label}: ${ctx.raw} item${ctx.raw !== 1 ? 's' : ''}` },
+                afterBody(contexts) {
+                  const key = contexts[0]?.label?.toLowerCase()
+                  const items = colorItems[key] || []
+                  return items.length ? ['', ...items.map(n => `· ${n}`)] : []
+                }
               }
             }
           }
