@@ -71,9 +71,12 @@ app.put('/api/:collection/:id', async (req, res) => {
 // Archive / unarchive an item
 app.patch('/api/:collection/:id/archive', async (req, res) => {
   try {
+    const update = { archived: true }
+    if (req.body?.archiveType) update.archiveType = req.body.archiveType
+    if (req.body?.discardReason) update.discardReason = req.body.discardReason
     const result = await db.collection(req.params.collection).updateOne(
       { _id: new ObjectId(req.params.id) },
-      { $set: { archived: true } }
+      { $set: update }
     )
     res.json(result)
   } catch (err) {
