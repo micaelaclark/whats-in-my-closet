@@ -493,7 +493,10 @@
     <!-- Brand + Color charts side by side -->
     <div class="charts-row">
       <div class="chart-section" style="margin-bottom:0">
-        <h2>Brand Insights</h2>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px">
+          <h2>Brand Insights</h2>
+          <button id="brand-toggle" onclick="toggleBrands()" style="background:none;border:none;font-size:0.78rem;color:#b09070;font-family:'DM Sans',inherit;cursor:pointer;padding:0;transition:color 0.15s" onmouseover="this.style.color='#3d2c1e'" onmouseout="this.style.color='#b09070'">Show all</button>
+        </div>
         <p class="chart-subtitle">items owned &amp; times worn by brand</p>
         <div class="chart-wrap chart-wrap--brand" id="brand-chart-wrap">
           <canvas id="brand-chart"></canvas>
@@ -803,6 +806,14 @@
       })
     }
 
+    let showAllBrands = false
+
+    function toggleBrands() {
+      showAllBrands = !showAllBrands
+      document.getElementById('brand-toggle').textContent = showAllBrands ? 'Show less' : 'Show all'
+      renderBrandChart()
+    }
+
     function renderBrandChart() {
       const brandMap = {}
       COLLECTIONS.forEach(col => {
@@ -813,7 +824,10 @@
           brandMap[b].worn += item.timesWorn || 0
         })
       })
-      const sorted = Object.entries(brandMap).sort((a, b) => b[1].count - a[1].count)
+      const all = Object.entries(brandMap).sort((a, b) => b[1].count - a[1].count)
+      const sorted = showAllBrands ? all : all.slice(0, 10)
+      const hasMore = all.length > 10
+      document.getElementById('brand-toggle').style.display = hasMore ? '' : 'none'
       const labels = sorted.map(([b]) => b)
       const counts = sorted.map(([, v]) => v.count)
       const wornTotals = sorted.map(([, v]) => v.worn)
