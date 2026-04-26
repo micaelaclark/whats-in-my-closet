@@ -186,6 +186,15 @@
       border-radius: 20px;
       padding: 1px 6px;
     }
+    .swap-badge {
+      font-size: 0.62rem;
+      font-weight: 600;
+      color: #2a7a5a;
+      background: #eefaf4;
+      border: 1px solid #b6e8d2;
+      border-radius: 20px;
+      padding: 1px 6px;
+    }
 
     .color-dot {
       width: 10px;
@@ -463,9 +472,14 @@
         <input type="text" id="edit-notes" placeholder="Notes" class="full" />
         <input type="date" id="edit-dateAdded" class="full" />
       </div>
-      <label class="check-label" style="margin-top: 8px;">
-        <input type="checkbox" id="edit-nuuly" /> Nuuly (rented)
-      </label>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;">
+        <label class="check-label">
+          <input type="checkbox" id="edit-nuuly" /> Nuuly (rented)
+        </label>
+        <label class="check-label">
+          <input type="checkbox" id="edit-swap" /> Swap
+        </label>
+      </div>
       <div class="form-actions">
         <button class="btn-submit" onclick="saveEdit()">Save</button>
         <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
@@ -519,6 +533,7 @@
       const worn = item.timesWorn != null ? `<span class="card-worn">×${item.timesWorn}</span>` : ''
       const brand = item.brand ? `<span class="card-brand">${escHtml(item.brand)}</span>` : ''
       const nuuly = item.nuuly ? `<span class="nuuly-badge">Nuuly</span>` : ''
+      const swap = item.swap ? `<span class="swap-badge">Swap</span>` : ''
       return `
         <div class="card">
           <div class="card-swatch">
@@ -528,7 +543,7 @@
           </div>
           <div class="card-body">
             <div class="card-name">${escHtml(item.name)}</div>
-            <div class="card-meta-row">${brand}${worn}${nuuly}</div>
+            <div class="card-meta-row">${brand}${worn}${nuuly}${swap}</div>
             <div class="card-actions">
               <button class="card-action-btn card-action-btn--wear" onclick="addWear('${collection}','${item._id}')">+ wear</button>
               <button class="card-action-btn card-action-btn--edit" onclick="openEditModal('${collection}','${item._id}')">edit</button>
@@ -568,9 +583,14 @@
               <input type="text" id="${collection}-notes" placeholder="Notes" class="full" />
               <input type="date" id="${collection}-dateAdded" title="Date acquired" class="full" />
             </div>
-            <label class="check-label">
-              <input type="checkbox" id="${collection}-nuuly" /> Nuuly (rented)
-            </label>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;">
+              <label class="check-label">
+                <input type="checkbox" id="${collection}-nuuly" /> Nuuly (rented)
+              </label>
+              <label class="check-label">
+                <input type="checkbox" id="${collection}-swap" /> Swap
+              </label>
+            </div>
             <div class="form-actions">
               <button class="btn-submit" onclick="addItem('${collection}')">Add</button>
               <button class="btn-cancel" onclick="toggleAddForm('${collection}')">Cancel</button>
@@ -606,6 +626,7 @@
           ? parseInt(document.getElementById(`${collection}-timesWorn`).value) : 0,
         notes: document.getElementById(`${collection}-notes`).value.trim() || undefined,
         nuuly: document.getElementById(`${collection}-nuuly`).checked || undefined,
+        swap: document.getElementById(`${collection}-swap`).checked || undefined,
         dateAdded: document.getElementById(`${collection}-dateAdded`).value || undefined,
       }
       await fetch(`/api/${collection}`, {
@@ -788,6 +809,7 @@
       document.getElementById('edit-timesWorn').value = item.timesWorn != null ? item.timesWorn : ''
       document.getElementById('edit-notes').value = item.notes || ''
       document.getElementById('edit-nuuly').checked = !!item.nuuly
+      document.getElementById('edit-swap').checked = !!item.swap
       document.getElementById('edit-dateAdded').value = item.dateAdded ? item.dateAdded.slice(0, 10) : ''
       document.getElementById('edit-modal').classList.add('open')
     }
@@ -832,6 +854,7 @@
           ? parseInt(document.getElementById('edit-timesWorn').value) : 0,
         notes: document.getElementById('edit-notes').value.trim() || undefined,
         nuuly: document.getElementById('edit-nuuly').checked || undefined,
+        swap: document.getElementById('edit-swap').checked || undefined,
         dateAdded: document.getElementById('edit-dateAdded').value || undefined,
       }
       await fetch(`/api/${collection}/${id}`, {
