@@ -270,18 +270,32 @@
     const COLOR_MAP = {
       black: '#1a1a1a', white: '#f5f5f0', grey: '#9e9e9e', gray: '#9e9e9e',
       'light grey': '#d0d0d0', 'light gray': '#d0d0d0', 'dark grey': '#555', 'dark gray': '#555',
-      charcoal: '#444', navy: '#1b2a4a', blue: '#3a72c4', 'light blue': '#7db8e8',
-      'dark blue': '#1a3a6e', denim: '#5b7fa6', indigo: '#4b4a8f',
+      charcoal: '#444', silver: '#b8b8b8', slate: '#708090', ash: '#a0a0a0',
+      cream: '#f5f0e0', ivory: '#f7f4ea', 'off-white': '#f0ede4', beige: '#e8dfc4',
+      nude: '#d4b49a', taupe: '#b0a090', stone: '#8a8070',
+      navy: '#1b2a4a', blue: '#3a72c4', 'light blue': '#7db8e8', 'dark blue': '#1a3a6e',
+      denim: '#5b7fa6', indigo: '#4b4a8f', 'sky blue': '#7ab8d8', 'baby blue': '#a8c8e8',
+      'royal blue': '#3050c0', cobalt: '#2050a0', periwinkle: '#9090cc',
+      cerulean: '#1a9ac0', 'powder blue': '#a0b8d4', 'electric blue': '#0070e0',
       red: '#d63a3a', crimson: '#c01c2c', burgundy: '#7d1f2e', wine: '#6b1a2a',
-      maroon: '#6b2027', pink: '#e87aa0', blush: '#f0c4c4', mauve: '#c4879e',
-      coral: '#e8705a', orange: '#e87c30', brown: '#7a5030', tan: '#c4a87a',
-      camel: '#c49a5a', khaki: '#bfae7e', beige: '#e8dfc4', cream: '#f5f0e0',
-      ivory: '#f7f4ea', 'off-white': '#f0ede4',
-      yellow: '#e8c830', gold: '#c8a830', olive: '#6b6b30', green: '#4a7a4a',
-      sage: '#8aaa7a', mint: '#8ad4b4', teal: '#3a8a8a', emerald: '#2d7a50',
-      forest: '#2a5a3a', purple: '#7c3aed', lavender: '#b09ae0', lilac: '#c4a8d4',
-      plum: '#6a2a6a', violet: '#6a3aaa', magenta: '#c03a8a',
-      silver: '#b8b8b8', nude: '#d4b49a', leopard: '#c49a30', floral: '#e87aa0',
+      maroon: '#6b2027', scarlet: '#c01c18', 'dark red': '#8a1010', garnet: '#7a1030',
+      rust: '#b05030', tomato: '#d0503a', cherry: '#8a1030',
+      pink: '#e87aa0', blush: '#f0c4c4', mauve: '#c4879e', coral: '#e8705a',
+      'hot pink': '#f0609a', rose: '#e05070', 'dusty rose': '#c07880',
+      'light pink': '#f0c8d4', bubblegum: '#f0a0b8', fuchsia: '#c0187a',
+      orange: '#e87c30', 'burnt orange': '#c85820', peach: '#f0b090',
+      yellow: '#e8c830', gold: '#c8a830', mustard: '#c8a030', lemon: '#e8e040',
+      brown: '#7a5030', tan: '#c4a87a', camel: '#c49a5a', khaki: '#bfae7e',
+      terracotta: '#c0603a', clay: '#b87a5a', brick: '#9a3020', copper: '#b07040',
+      green: '#4a7a4a', sage: '#8aaa7a', mint: '#8ad4b4', teal: '#3a8a8a',
+      emerald: '#2d7a50', forest: '#2a5a3a', olive: '#6b6b30',
+      lime: '#32CD32', 'lime green': '#32CD32', 'bright green': '#2ab830',
+      'hunter green': '#2a5030', 'light green': '#90d090', turquoise: '#30c0b0',
+      chartreuse: '#a0d020', 'neon green': '#2ae814', 'dark green': '#1a4a1a',
+      purple: '#7c3aed', lavender: '#b09ae0', lilac: '#c4a8d4', plum: '#6a2a6a',
+      violet: '#6a3aaa', magenta: '#c03a8a', orchid: '#c070b0', grape: '#6a2090',
+      mulberry: '#8a2060',
+      leopard: '#c49a30', floral: '#e87aa0', striped: '#8888aa', plaid: '#7a6080',
       multicolor: 'linear-gradient(135deg, #e87c30, #7c3aed, #3a72c4)',
     }
 
@@ -299,16 +313,15 @@
     }
 
     function renderCard(item, collection, showReason) {
-      const colors = Array.isArray(item.color) ? item.color : (item.color ? [item.color] : [])
-      const primary = colors[0] || ''
-      const primaryCss = primary ? colorToCss(primary) : '#e8e6e1'
-      const isGrad = primaryCss.startsWith('linear-gradient')
-      const swatchStyle = isGrad ? `background:${primaryCss};` : `background-color:${primaryCss};`
-      const extraDots = colors.length > 1
-        ? `<div class="card-extra-dots">${colors.map(c => renderDot(c, 9)).join('')}</div>`
-        : ''
+      const mainColor = Array.isArray(item.color) ? item.color[0] : (item.color || '')
+      const sub = item.subcolor || ''
+      const swatchLookup = sub || mainColor
+      const swatchCss = colorToCss(swatchLookup) !== '#ccc' ? colorToCss(swatchLookup) : colorToCss(mainColor)
+      const isGrad = swatchCss.startsWith('linear-gradient')
+      const swatchStyle = isGrad ? `background:${swatchCss};` : `background-color:${swatchCss};`
       const worn = item.timesWorn != null ? `<span class="card-worn">×${item.timesWorn}</span>` : ''
       const brand = item.brand ? `<span class="card-brand">${escHtml(item.brand)}</span>` : ''
+      const subcolorLabel = sub ? `<span style="font-size:0.68rem;color:#a8957e">${escHtml(sub)}</span>` : ''
       const nuuly = item.nuuly ? `<span class="nuuly-badge">Nuuly</span>` : ''
       const swap = item.swap ? `<span class="swap-badge">Swap</span>` : ''
       const reason = showReason && item.discardReason
@@ -317,12 +330,11 @@
         <div class="card">
           <div class="card-swatch">
             <div class="card-swatch-fill" style="${swatchStyle}"></div>
-            ${extraDots}
             <button class="card-restore" onclick="unarchiveItem('${collection}','${item._id}')">restore</button>
           </div>
           <div class="card-body">
             <div class="card-name">${escHtml(item.name)}</div>
-            <div class="card-meta-row">${brand}${worn}${nuuly}${swap}</div>
+            <div class="card-meta-row">${brand}${worn}${subcolorLabel}${nuuly}${swap}</div>
             ${reason}
           </div>
         </div>`
