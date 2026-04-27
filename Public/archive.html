@@ -195,7 +195,7 @@
       flex-wrap: wrap;
     }
     .card-brand { font-size: 0.7rem; color: #b09070; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
-    .card-worn { font-size: 0.68rem; color: #c8aa90; white-space: nowrap; }
+    .card-worn { position: absolute; top: 7px; left: 8px; font-size: 1rem; font-weight: 700; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.35); white-space: nowrap; pointer-events: none; }
     .card-reason {
       margin-top: 5px;
       font-size: 0.68rem;
@@ -272,6 +272,7 @@
       denim: '#5b7fa6', indigo: '#4b4a8f', 'sky blue': '#7ab8d8', 'baby blue': '#a8c8e8',
       'royal blue': '#3050c0', cobalt: '#2050a0', periwinkle: '#9090cc',
       cerulean: '#1a9ac0', 'powder blue': '#a0b8d4', 'electric blue': '#0070e0',
+      'light wash': '#c5daf0',
       red: '#d63a3a', crimson: '#c01c2c', burgundy: '#7d1f2e', wine: '#6b1a2a',
       maroon: '#6b2027', scarlet: '#c01c18', 'dark red': '#8a1010', garnet: '#7a1030',
       rust: '#b05030', tomato: '#d0503a', cherry: '#8a1030',
@@ -329,11 +330,12 @@
           <div class="card-swatch">
             <div class="card-swatch-fill" style="${swatchStyle}"></div>
             <button class="card-restore" onclick="unarchiveItem('${collection}','${item._id}')">restore</button>
+            ${worn}
             ${badges ? `<div class="card-extra-dots">${badges}</div>` : ''}
           </div>
           <div class="card-body">
             <div class="card-name">${escHtml(item.name)}</div>
-            <div class="card-meta-row">${brand}${worn}${subcolorLabel}</div>
+            <div class="card-meta-row">${brand}${subcolorLabel}</div>
             ${reason}
           </div>
         </div>`
