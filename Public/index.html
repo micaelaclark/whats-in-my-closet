@@ -772,7 +772,7 @@
         </div>`
     }
 
-    let allData = { pants: [], skirts: [], shirts: [], pullovers: [], athletic: [], jackets: [] }
+    let allData = Object.fromEntries(COLLECTIONS.map(c => [c, []]))
 
     function renderAll(data) {
       document.getElementById('sections').innerHTML =
