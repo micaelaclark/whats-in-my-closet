@@ -910,7 +910,8 @@
       const brandItems = {}
       cols.forEach(col => {
         (allData[col] || []).filter(i => !i.archived).forEach(item => {
-          const b = (item.brand || 'Unknown').trim()
+          const b = (item.brand || '').trim()
+          if (!b) return
           if (!brandMap[b]) { brandMap[b] = { count: 0, worn: 0 }; brandItems[b] = [] }
           brandMap[b].count++
           brandMap[b].worn += item.timesWorn || 0
