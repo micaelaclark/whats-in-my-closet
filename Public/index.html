@@ -576,7 +576,6 @@
           <input type="text" id="edit-brand" placeholder="Brand" />
           <input type="number" id="edit-timesWorn" placeholder="Times worn" min="0" />
           <input type="text" id="edit-notes" placeholder="Notes" class="full" />
-          <input type="date" id="edit-dateAdded" class="full" />
         </div>
         <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;">
           <label class="check-label"><input type="checkbox" id="edit-nuuly" /> Nuuly</label>
@@ -745,7 +744,6 @@
               <input type="text" id="${collection}-brand" placeholder="Brand" />
               <input type="number" id="${collection}-timesWorn" placeholder="Times worn" min="0" />
               <input type="text" id="${collection}-notes" placeholder="Notes" class="full" />
-              <input type="date" id="${collection}-dateAdded" title="Date acquired" class="full" />
             </div>
             <div style="display:flex;gap:16px;flex-wrap:wrap;">
               <label class="check-label"><input type="checkbox" id="${collection}-nuuly" /> Nuuly</label>
@@ -792,7 +790,6 @@
         nuulyBought: document.getElementById(`${collection}-nuulyBought`).checked || undefined,
         thrift: document.getElementById(`${collection}-thrift`).checked || undefined,
         swap: document.getElementById(`${collection}-swap`).checked || undefined,
-        dateAdded: document.getElementById(`${collection}-dateAdded`).value || undefined,
       }
       const res = await fetch(`/api/${collection}`, {
         method: 'POST',
@@ -1031,7 +1028,7 @@
       document.getElementById('edit-nuulyBought').checked = !!item.nuulyBought
       document.getElementById('edit-thrift').checked = !!item.thrift
       document.getElementById('edit-swap').checked = !!item.swap
-      document.getElementById('edit-dateAdded').value = item.dateAdded ? item.dateAdded.slice(0, 10) : ''
+
       document.getElementById('edit-modal').classList.add('open')
     }
 
@@ -1122,7 +1119,6 @@
         nuulyBought: document.getElementById('edit-nuulyBought').checked || undefined,
         thrift: document.getElementById('edit-thrift').checked || undefined,
         swap: document.getElementById('edit-swap').checked || undefined,
-        dateAdded: document.getElementById('edit-dateAdded').value || undefined,
       }
       await fetch(`/api/${collection}/${id}`, {
         method: 'PUT',
