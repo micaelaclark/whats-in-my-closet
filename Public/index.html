@@ -505,6 +505,7 @@
     .chart-wrap--scatter { height: 420px; }
     .chart-wrap--brand { height: 260px; }
     .chart-wrap--color { height: 260px; }
+    .chart-wrap--acquisition { height: 300px; }
 
     .chart-filters {
       display: flex;
@@ -570,6 +571,15 @@
         <div class="chart-wrap chart-wrap--color">
           <canvas id="color-chart"></canvas>
         </div>
+      </div>
+    </div>
+
+    <!-- Acquisition chart -->
+    <div class="chart-section">
+      <h2>How I Got It</h2>
+      <p class="chart-subtitle">breakdown by acquisition type</p>
+      <div class="chart-wrap chart-wrap--acquisition">
+        <canvas id="acquisition-chart"></canvas>
       </div>
     </div>
 
@@ -830,6 +840,7 @@
     let scatterChart = null
     let brandChart = null
     let colorChart = null
+    let acquisitionChart = null
 
     function renderScatterChart() {
       const today = new Date()
@@ -1038,6 +1049,48 @@
       })
     }
 
+    function renderAcquisitionChart() {
+      const counts = { Thrift: 0, Swap: 0, Nuuly: 0, 'Nuuly Bought': 0, Bought: 0 }
+      COLLECTIONS.forEach(col => {
+        (allData[col] || []).filter(i => !i.archived).forEach(item => {
+          if (item.thrift) counts.Thrift++
+          else if (item.swap) counts.Swap++
+          else if (item.nuuly) counts.Nuuly++
+          else if (item.nuulyBought) counts['Nuuly Bought']++
+          else counts.Bought++
+        })
+      })
+      const total = Object.values(counts).reduce((a, b) => a + b, 0)
+      const labels = Object.keys(counts).filter(k => counts[k] > 0)
+      const data = labels.map(k => counts[k])
+      const colors = { Thrift: '#a8c4a0', Swap: '#a8b8d4', Nuuly: '#d4a8c4', 'Nuuly Bought': '#c4a8d4', Bought: '#e8d0b8' }
+
+      const ctx = document.getElementById('acquisition-chart').getContext('2d')
+      if (acquisitionChart) acquisitionChart.destroy()
+      acquisitionChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels,
+          datasets: [{ data, backgroundColor: labels.map(l => colors[l]), borderColor: '#fffcf8', borderWidth: 2, hoverOffset: 8 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { usePointStyle: true, pointStyle: 'circle', color: '#555', font: { size: 12 }, padding: 16 } },
+            tooltip: {
+              callbacks: {
+                label(ctx) {
+                  const pct = total ? Math.round(ctx.raw / total * 100) : 0
+                  return ` ${ctx.label}: ${ctx.raw} item${ctx.raw !== 1 ? 's' : ''} (${pct}%)`
+                }
+              }
+            }
+          }
+        }
+      })
+    }
+
     let editTarget = { collection: null, id: null }
 
     function openEditModal(collection, id) {
@@ -1165,6 +1218,7 @@
       renderScatterChart()
       renderBrandChart()
       renderColorChart()
+      renderAcquisitionChart()
     }
 
     loadAll()
