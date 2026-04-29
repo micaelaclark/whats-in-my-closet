@@ -72,6 +72,8 @@
       align-items: baseline;
       justify-content: space-between;
       margin-bottom: 14px;
+      cursor: pointer;
+      user-select: none;
     }
     .section-header h2 {
       font-family: 'Playfair Display', serif;
@@ -84,6 +86,17 @@
       font-size: 0.78rem;
       color: #c4aa90;
     }
+    .section-chevron {
+      font-size: 0.7rem;
+      color: #c4aa90;
+      margin-left: 8px;
+      transition: transform 0.2s;
+      display: inline-block;
+    }
+    .section.collapsed .section-chevron { transform: rotate(-90deg); }
+    .section.collapsed .cards,
+    .section.collapsed .add-form { display: none; }
+    .section.collapsed .section-header { margin-bottom: 0; }
 
     /* Square card grid */
     .cards {
@@ -731,8 +744,8 @@
         </div>`
       return `
         <div class="section" id="section-${collection}">
-          <div class="section-header">
-            <h2>${label}</h2>
+          <div class="section-header" onclick="toggleSection('${collection}')">
+            <h2>${label}<span class="section-chevron">▾</span></h2>
             <span class="section-count">${active.length} item${active.length !== 1 ? 's' : ''}</span>
           </div>
           <div class="cards">${cards}${addCard}</div>
@@ -764,6 +777,10 @@
     function renderAll(data) {
       document.getElementById('sections').innerHTML =
         COLLECTIONS.map(c => renderSection(c, data[c] || [])).join('')
+    }
+
+    function toggleSection(collection) {
+      document.getElementById(`section-${collection}`).classList.toggle('collapsed')
     }
 
     function toggleAddForm(collection) {
