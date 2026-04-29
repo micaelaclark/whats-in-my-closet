@@ -918,8 +918,8 @@
         })
       })
       const all = Object.entries(brandMap).sort((a, b) => b[1].count - a[1].count)
-      const sorted = showAllBrands ? all : all.slice(0, 10)
-      const hasMore = all.length > 10
+      const sorted = showAllBrands ? all : all.slice(0, 5)
+      const hasMore = all.length > 5
       document.getElementById('brand-toggle').style.display = hasMore ? '' : 'none'
       const labels = sorted.map(([b]) => b)
       const counts = sorted.map(([, v]) => v.count)
@@ -935,8 +935,8 @@
         data: {
           labels,
           datasets: [
-            { label: 'Items', data: counts, backgroundColor: '#8b7bb5', borderRadius: 4, barPercentage: 0.55 },
-            { label: 'Times worn', data: wornTotals, backgroundColor: '#e8b98a', borderRadius: 4, barPercentage: 0.55 },
+            { label: 'Items', data: counts, backgroundColor: '#b8a9c9', borderRadius: 4, barPercentage: 0.55 },
+            { label: 'Times worn', data: wornTotals, backgroundColor: '#a8c4b8', borderRadius: 4, barPercentage: 0.55 },
           ]
         },
         options: {
