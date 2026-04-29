@@ -530,6 +530,8 @@
     <div class="chart-section">
       <h2>Wardrobe at a Glance</h2>
       <p class="chart-subtitle">days owned × times worn — hover for details</p>
+      <div class="chart-filters" id="scatter-filters"></div>
+      <div class="chart-filters" id="scatter-time-filters"></div>
       <div class="chart-wrap chart-wrap--scatter">
         <canvas id="wardrobe-chart"></canvas>
       </div>
@@ -816,19 +818,23 @@
     let colorChart = null
 
     function renderScatterChart() {
+      renderFilterPills('scatter-filters', scatterCategory, 'setScatterCategory')
+      const timeOptions = [[null, 'All time'], [60, '60 days'], [120, '120 days'], [365, '1 year']]
+      document.getElementById('scatter-time-filters').innerHTML = timeOptions.map(([val, label]) =>
+        `<button class="chart-filter${scatterDays === val ? ' active' : ''}" onclick="setScatterDays(${val})">${label}</button>`
+      ).join('')
+
       const today = new Date()
-      const datasets = COLLECTIONS.map(col => ({
+      const cols = scatterCategory === 'all' ? COLLECTIONS : [scatterCategory]
+      const datasets = cols.map(col => ({
         label: LABELS[col],
-        data: (allData[col] || []).filter(i => !i.archived).map(item => {
+        data: (allData[col] || []).filter(i => !i.archived).flatMap(item => {
           const date = item.dateAdded
             ? new Date(item.dateAdded)
             : new Date(parseInt(String(item._id).substring(0, 8), 16) * 1000)
-          return {
-            x: Math.floor((today - date) / 86400000),
-            y: item.timesWorn || 0,
-            _name: item.name,
-            _brand: item.brand || '',
-          }
+          const x = Math.floor((today - date) / 86400000)
+          if (scatterDays !== null && x > scatterDays) return []
+          return [{ x, y: item.timesWorn || 0, _name: item.name, _brand: item.brand || '' }]
         }),
         backgroundColor: COLLECTION_COLORS[col],
         pointRadius: 8,
@@ -855,7 +861,7 @@
             }
           },
           scales: {
-            x: { title: { display: true, text: 'Days owned', color: '#999', font: { size: 11 } }, grid: { color: '#f0e6da' }, ticks: { color: '#c4aa90', precision: 0 }, beginAtZero: true },
+            x: { title: { display: true, text: 'Days owned', color: '#999', font: { size: 11 } }, grid: { color: '#f0e6da' }, ticks: { color: '#c4aa90', precision: 0 }, beginAtZero: true, ...(scatterDays !== null ? { max: scatterDays } : {}) },
             y: { title: { display: true, text: 'Times worn', color: '#999', font: { size: 11 } }, grid: { color: '#f0e6da' }, ticks: { color: '#c4aa90', precision: 0 }, beginAtZero: true, suggestedMax: 5 }
           }
         }
@@ -865,6 +871,18 @@
     let showAllBrands = false
     let brandCategory = 'all'
     let colorCategory = 'all'
+    let scatterCategory = 'all'
+    let scatterDays = null
+
+    function setScatterCategory(cat) {
+      scatterCategory = cat
+      renderScatterChart()
+    }
+
+    function setScatterDays(days) {
+      scatterDays = days
+      renderScatterChart()
+    }
 
     function renderFilterPills(containerId, activeCategory, callbackName) {
       const filters = [['all', 'All'], ...COLLECTIONS.map(c => [c, LABELS[c]])]
