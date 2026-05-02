@@ -526,6 +526,40 @@
     }
     .chart-filter:hover { border-color: #b09070; color: #3d2c1e; }
     .chart-filter.active { background: #3d2c1e; border-color: #3d2c1e; color: #fff; }
+
+    .suggestion-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .suggestion-card {
+      background: #fdf8f3;
+      border: 1px solid #edddd0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .suggestion-num {
+      font-size: 0.68rem;
+      color: #c4aa90;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .suggestion-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.95rem;
+      color: #1e140a;
+      font-weight: 500;
+    }
+    .suggestion-reason {
+      font-size: 0.75rem;
+      color: #9a8070;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -582,6 +616,9 @@
         <canvas id="acquisition-chart"></canvas>
       </div>
     </div>
+
+    <!-- Nuuly suggestions -->
+    <div id="nuuly-suggestions"></div>
 
     <!-- Clothing sections -->
     <div id="sections"></div>
@@ -1091,6 +1128,91 @@
       })
     }
 
+    function generateSuggestions() {
+      const suggestions = []
+      const allItems = COLLECTIONS.flatMap(c => (allData[c] || []).filter(i => !i.archived))
+      if (!allItems.length) return []
+
+      const catStats = {}
+      COLLECTIONS.forEach(col => {
+        const items = (allData[col] || []).filter(i => !i.archived)
+        const totalWears = items.reduce((s, i) => s + (i.timesWorn || 0), 0)
+        catStats[col] = { count: items.length, totalWears, avg: items.length ? totalWears / items.length : 0, items }
+      })
+
+      const usedCats = new Set()
+
+      // 1. Smallest category (fewest items)
+      const smallest = Object.entries(catStats).filter(([,s]) => s.count > 0).sort((a,b) => a[1].count - b[1].count)[0]
+      if (smallest) {
+        const [col, s] = smallest
+        usedCats.add(col)
+        const label = LABELS[col].toLowerCase()
+        suggestions.push({ title: `A new ${label.replace(/s$/, '')}`, reason: `You only have ${s.count} ${label} — renting is a low-risk way to try a style before committing.` })
+      }
+
+      // 2. Lowest wear-rate category (min 2 items, not already used)
+      const lowestWear = Object.entries(catStats).filter(([c,s]) => s.count >= 2 && !usedCats.has(c)).sort((a,b) => a[1].avg - b[1].avg)[0]
+      if (lowestWear) {
+        const [col, s] = lowestWear
+        usedCats.add(col)
+        const label = LABELS[col].toLowerCase()
+        suggestions.push({ title: `A different ${label.replace(/s$/, '')} silhouette`, reason: `Your ${label} average ${s.avg.toFixed(1)} wears each — try renting a different cut or style to find what you'll actually reach for.` })
+      }
+
+      // 3. Most-worn single item → find something similar
+      const mostWorn = [...allItems].sort((a,b) => (b.timesWorn||0) - (a.timesWorn||0))[0]
+      if (mostWorn && (mostWorn.timesWorn || 0) > 0) {
+        const col = COLLECTIONS.find(c => (allData[c]||[]).some(i => String(i._id) === String(mostWorn._id)))
+        const label = col ? LABELS[col].toLowerCase().replace(/s$/, '') : 'piece'
+        const color = Array.isArray(mostWorn.color) ? mostWorn.color[0] : mostWorn.color
+        const colorHint = color ? ` in ${color}` : ''
+        suggestions.push({ title: `Another ${label} like your ${mostWorn.name}`, reason: `You've worn your ${mostWorn.name} ${mostWorn.timesWorn}× — it's your most-reached-for piece. Find a rental${colorHint} in the same vibe.` })
+      }
+
+      // 4. A color you barely own
+      const colorCount = {}
+      allItems.forEach(item => {
+        const c = (Array.isArray(item.color) ? item.color[0] : item.color || '').toLowerCase().trim()
+        if (c) colorCount[c] = (colorCount[c] || 0) + 1
+      })
+      const tryColors = ['red', 'yellow', 'orange', 'pink', 'green', 'purple', 'floral', 'printed', 'striped']
+      const missingColor = tryColors.find(c => !colorCount[c])
+      if (missingColor) {
+        suggestions.push({ title: `Something ${missingColor}`, reason: `You don't have anything ${missingColor} in your closet right now — renting is the perfect way to test a bold choice without the commitment.` })
+      }
+
+      // 5. Highest wear-rate category → push yourself with a statement piece
+      const highestWear = Object.entries(catStats).filter(([,s]) => s.count >= 1).sort((a,b) => b[1].avg - a[1].avg)[0]
+      if (highestWear) {
+        const [col, s] = highestWear
+        const label = LABELS[col].toLowerCase()
+        suggestions.push({ title: `A statement ${label.replace(/s$/, '')}`, reason: `Your ${label} get the most wear (${s.avg.toFixed(1)}× each on average) — try something elevated or outside your usual style in this category.` })
+      }
+
+      return suggestions.slice(0, 5)
+    }
+
+    function renderNuulySuggestions() {
+      const el = document.getElementById('nuuly-suggestions')
+      const suggestions = generateSuggestions()
+      if (!suggestions.length) { el.innerHTML = ''; return }
+      el.innerHTML = `
+        <div class="chart-section">
+          <h2>Nuuly Picks for You</h2>
+          <p class="chart-subtitle">5 rental ideas based on what's in your closet</p>
+          <div class="suggestion-grid">
+            ${suggestions.map((s, i) => `
+              <div class="suggestion-card">
+                <div class="suggestion-num">Pick ${i + 1}</div>
+                <div class="suggestion-title">${s.title}</div>
+                <div class="suggestion-reason">${s.reason}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>`
+    }
+
     let editTarget = { collection: null, id: null }
 
     function openEditModal(collection, id) {
@@ -1219,6 +1341,7 @@
       renderBrandChart()
       renderColorChart()
       renderAcquisitionChart()
+      renderNuulySuggestions()
     }
 
     loadAll()
