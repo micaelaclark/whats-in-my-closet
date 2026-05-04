@@ -313,6 +313,24 @@
       color: #111;
       margin-bottom: 16px;
     }
+    .modal select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #e0ddd8;
+      border-radius: 7px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      background: #faf9f7;
+      color: #1a1a1a;
+      outline: none;
+      transition: border-color 0.15s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23b09070'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+    .modal select:focus { border-color: #aaa; background-color: #fff; }
     .modal input[type="text"],
     .modal input[type="number"],
     .modal input[type="date"] {
@@ -632,6 +650,7 @@
       <div id="modal-edit-panel">
         <div class="modal-title">Edit item</div>
         <div class="form-grid">
+          <select id="edit-collection" class="full"></select>
           <input type="text" id="edit-name" placeholder="Name (required)" class="full" />
           <input type="text" id="edit-color" placeholder="Main color (e.g. green)" />
           <input type="text" id="edit-subcolor" placeholder="Subcolor (e.g. lime green)" />
@@ -684,8 +703,8 @@
   </div>
 
   <script>
-    const COLLECTIONS = ['pants', 'skirts', 'shirts', 'pullovers', 'jackets', 'shoes']
-    const LABELS = { pants: 'Pants', skirts: 'Skirts', shirts: 'Shirts', pullovers: 'Pull Overs', jackets: 'Jackets', shoes: 'Shoes' }
+    const COLLECTIONS = ['pants', 'skirts', 'shirts', 'pullovers', 'sweaters', 'jackets']
+    const LABELS = { pants: 'Pants', skirts: 'Skirts', shirts: 'Shirts', pullovers: 'Pull Overs', sweaters: 'Sweaters', jackets: 'Jackets' }
 
     const COLOR_MAP = {
       // Neutrals
@@ -872,7 +891,7 @@
     }
 
     const COLLECTION_COLORS = {
-      pants: '#89aed4', skirts: '#e8a4b8', shirts: '#d4896a', pullovers: '#d4a8c4', jackets: '#aa8ec8', shoes: '#f0c070'
+      pants: '#89aed4', skirts: '#e8a4b8', shirts: '#d4896a', pullovers: '#d4a8c4', sweaters: '#c4a882', jackets: '#aa8ec8'
     }
     let scatterChart = null
     let brandChart = null
@@ -1128,87 +1147,94 @@
       })
     }
 
-    function generateSuggestions() {
-      const suggestions = []
+    function getFashionInsight() {
       const allItems = COLLECTIONS.flatMap(c => (allData[c] || []).filter(i => !i.archived))
-      if (!allItems.length) return []
+      const totalItems = allItems.length
 
       const catStats = {}
       COLLECTIONS.forEach(col => {
         const items = (allData[col] || []).filter(i => !i.archived)
         const totalWears = items.reduce((s, i) => s + (i.timesWorn || 0), 0)
-        catStats[col] = { count: items.length, totalWears, avg: items.length ? totalWears / items.length : 0, items }
+        catStats[col] = { count: items.length, avg: items.length ? totalWears / items.length : 0 }
       })
-
-      const usedCats = new Set()
-
-      // 1. Smallest category (fewest items)
-      const smallest = Object.entries(catStats).filter(([,s]) => s.count > 0).sort((a,b) => a[1].count - b[1].count)[0]
-      if (smallest) {
-        const [col, s] = smallest
-        usedCats.add(col)
-        const label = LABELS[col].toLowerCase()
-        suggestions.push({ title: `A new ${label.replace(/s$/, '')}`, reason: `You only have ${s.count} ${label} — renting is a low-risk way to try a style before committing.` })
-      }
-
-      // 2. Lowest wear-rate category (min 2 items, not already used)
-      const lowestWear = Object.entries(catStats).filter(([c,s]) => s.count >= 2 && !usedCats.has(c)).sort((a,b) => a[1].avg - b[1].avg)[0]
-      if (lowestWear) {
-        const [col, s] = lowestWear
-        usedCats.add(col)
-        const label = LABELS[col].toLowerCase()
-        suggestions.push({ title: `A different ${label.replace(/s$/, '')} silhouette`, reason: `Your ${label} average ${s.avg.toFixed(1)} wears each — try renting a different cut or style to find what you'll actually reach for.` })
-      }
-
-      // 3. Most-worn single item → find something similar
       const mostWorn = [...allItems].sort((a,b) => (b.timesWorn||0) - (a.timesWorn||0))[0]
-      if (mostWorn && (mostWorn.timesWorn || 0) > 0) {
-        const col = COLLECTIONS.find(c => (allData[c]||[]).some(i => String(i._id) === String(mostWorn._id)))
-        const label = col ? LABELS[col].toLowerCase().replace(/s$/, '') : 'piece'
-        const color = Array.isArray(mostWorn.color) ? mostWorn.color[0] : mostWorn.color
-        const colorHint = color ? ` in ${color}` : ''
-        suggestions.push({ title: `Another ${label} like your ${mostWorn.name}`, reason: `You've worn your ${mostWorn.name} ${mostWorn.timesWorn}× — it's your most-reached-for piece. Find a rental${colorHint} in the same vibe.` })
-      }
-
-      // 4. A color you barely own
+      const leastWorn = [...allItems].filter(i => (i.timesWorn||0) === 0)
+      const topCat = Object.entries(catStats).sort((a,b) => b[1].avg - a[1].avg)[0]
       const colorCount = {}
-      allItems.forEach(item => {
-        const c = (Array.isArray(item.color) ? item.color[0] : item.color || '').toLowerCase().trim()
+      allItems.forEach(i => {
+        const c = (Array.isArray(i.color) ? i.color[0] : i.color || '').toLowerCase().trim()
         if (c) colorCount[c] = (colorCount[c] || 0) + 1
       })
-      const tryColors = ['red', 'yellow', 'orange', 'pink', 'green', 'purple', 'floral', 'printed', 'striped']
-      const missingColor = tryColors.find(c => !colorCount[c])
-      if (missingColor) {
-        suggestions.push({ title: `Something ${missingColor}`, reason: `You don't have anything ${missingColor} in your closet right now — renting is the perfect way to test a bold choice without the commitment.` })
-      }
+      const topColor = Object.entries(colorCount).sort((a,b) => b[1]-a[1])[0]?.[0] || 'neutral'
+      const tryColors = ['red','yellow','orange','pink','green','purple','printed','striped']
+      const missingColor = tryColors.find(c => !colorCount[c]) || 'a bold new color'
 
-      // 5. Highest wear-rate category → push yourself with a statement piece
-      const highestWear = Object.entries(catStats).filter(([,s]) => s.count >= 1).sort((a,b) => b[1].avg - a[1].avg)[0]
-      if (highestWear) {
-        const [col, s] = highestWear
-        const label = LABELS[col].toLowerCase()
-        suggestions.push({ title: `A statement ${label.replace(/s$/, '')}`, reason: `Your ${label} get the most wear (${s.avg.toFixed(1)}× each on average) — try something elevated or outside your usual style in this category.` })
-      }
+      const tips = [
+        {
+          heading: 'The cost-per-wear rule',
+          body: `You have ${totalItems} items in your closet. The ones you'll never regret buying are the ones you wear on repeat${mostWorn ? ` — like your ${mostWorn.name}` : ''}. Before adding anything new, ask: will I wear this at least 30 times?`
+        },
+        {
+          heading: 'Embrace a color you avoid',
+          body: `Your closet leans heavily ${topColor}. This week, try styling something in ${missingColor} — renting it first is a zero-risk way to see if it's actually you.`
+        },
+        {
+          heading: 'The outfit formula that always works',
+          body: `One statement piece + two basics. Let your most-worn item lead and build quietly around it. Restraint reads as intention.`
+        },
+        {
+          heading: 'Wear your unworn',
+          body: `${leastWorn.length > 0 ? `You have ${leastWorn.length} item${leastWorn.length !== 1 ? 's' : ''} sitting at 0 wears.` : 'Everything in your closet has been worn — great sign.'} Challenge yourself to style one forgotten piece this week before reaching for a favorite.`
+        },
+        {
+          heading: 'Texture over print',
+          body: `When in doubt, reach for texture — bouclé, ribbed knit, satin, linen. It adds visual interest without committing to a pattern, and it photographs beautifully.`
+        },
+        {
+          heading: `Double down on your best category`,
+          body: `${topCat ? `Your ${LABELS[topCat[0]].toLowerCase()} get worn the most (${topCat[1].avg.toFixed(1)}× on average).` : 'Your most-worn category is pulling its weight.'} Invest in quality here — it's clearly your uniform.`
+        },
+        {
+          heading: 'The tuck trick',
+          body: `A half-tuck or front-tuck transforms any top instantly. It adds shape, defines the waist, and makes an outfit look considered rather than thrown on.`
+        },
+        {
+          heading: 'Monochrome dressing',
+          body: `Try wearing head-to-toe ${topColor} in different shades and textures this week. Tonal dressing is one of the easiest ways to look put-together with zero effort.`
+        },
+        {
+          heading: 'Proportion is everything',
+          body: `Oversized on top → slim on the bottom. Flowy skirt → fitted top. Balancing volume is the secret behind every outfit that looks intentional.`
+        },
+        {
+          heading: 'Wear it differently',
+          body: `Before buying something new, try styling your existing pieces in a new way — tucked, layered, belted, or backwards. You probably have more outfits than you think.`
+        },
+        {
+          heading: 'The power of a great jacket',
+          body: `A jacket changes everything it touches. If yours aren't getting worn, try throwing one over an outfit you'd normally call "done" — it instantly adds structure and polish.`
+        },
+        {
+          heading: 'Shop your closet first',
+          body: `Before your next Nuuly rental order, spend 10 minutes trying on items you haven't worn recently. You might rediscover exactly what you were about to rent.`
+        },
+      ]
 
-      return suggestions.slice(0, 5)
+      const week = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000))
+      return tips[week % tips.length]
     }
 
     function renderNuulySuggestions() {
       const el = document.getElementById('nuuly-suggestions')
-      const suggestions = generateSuggestions()
-      if (!suggestions.length) { el.innerHTML = ''; return }
+      if (!el) return
+      const tip = getFashionInsight()
       el.innerHTML = `
         <div class="chart-section">
-          <h2>Nuuly Picks for You</h2>
-          <p class="chart-subtitle">5 rental ideas based on what's in your closet</p>
-          <div class="suggestion-grid">
-            ${suggestions.map((s, i) => `
-              <div class="suggestion-card">
-                <div class="suggestion-num">Pick ${i + 1}</div>
-                <div class="suggestion-title">${s.title}</div>
-                <div class="suggestion-reason">${s.reason}</div>
-              </div>
-            `).join('')}
+          <h2>Fashion Insight</h2>
+          <p class="chart-subtitle">updated weekly · tailored to your closet</p>
+          <div class="suggestion-card" style="max-width:640px">
+            <div class="suggestion-title">${tip.heading}</div>
+            <div class="suggestion-reason" style="font-size:0.85rem;margin-top:4px">${tip.body}</div>
           </div>
         </div>`
     }
@@ -1219,6 +1245,8 @@
       const item = (allData[collection] || []).find(i => String(i._id) === String(id))
       if (!item) return
       editTarget = { collection, id }
+      const sel = document.getElementById('edit-collection')
+      sel.innerHTML = COLLECTIONS.map(c => `<option value="${c}"${c === collection ? ' selected' : ''}>${LABELS[c]}</option>`).join('')
       const mainColor = Array.isArray(item.color) ? item.color[0] : (item.color || '')
       document.getElementById('edit-name').value = item.name || ''
       document.getElementById('edit-color').value = mainColor
@@ -1309,6 +1337,7 @@
         colorEl.style.borderColor = colorEl.value.trim() ? '' : '#e05'
         return
       }
+      const newCollection = document.getElementById('edit-collection').value
       const body = {
         name: nameEl.value.trim(),
         color: colorEl.value.trim() ? [colorEl.value.trim()] : undefined,
@@ -1322,11 +1351,20 @@
         thrift: document.getElementById('edit-thrift').checked || undefined,
         swap: document.getElementById('edit-swap').checked || undefined,
       }
-      await fetch(`/api/${collection}/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
+      if (newCollection !== collection) {
+        await fetch(`/api/${newCollection}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+        await fetch(`/api/${collection}/${id}`, { method: 'DELETE' })
+      } else {
+        await fetch(`/api/${collection}/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+      }
       closeEditModal()
       await loadAll()
     }
