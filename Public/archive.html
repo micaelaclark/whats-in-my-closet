@@ -259,8 +259,8 @@
   </div>
 
   <script>
-    const COLLECTIONS = ['pants', 'skirts', 'shirts', 'pullovers', 'sweaters', 'jackets']
-    const LABELS = { pants: 'Pants', skirts: 'Skirts', shirts: 'Shirts', pullovers: 'Pull Overs', sweaters: 'Sweaters', jackets: 'Jackets' }
+    const COLLECTIONS = ['pants', 'skirts', 'dresses', 'shirts', 'pullovers', 'sweaters', 'jackets']
+    const LABELS = { pants: 'Pants', skirts: 'Skirts', dresses: 'Dresses', shirts: 'Shirts', pullovers: 'Pull Overs', sweaters: 'Sweaters', jackets: 'Jackets' }
 
     const COLOR_MAP = {
       black: '#1a1a1a', white: '#f5f5f0', grey: '#9e9e9e', gray: '#9e9e9e',
@@ -373,16 +373,13 @@
         })
       })
 
-      // Update tab counts
       document.getElementById('count-nuuly').textContent = nuulyItems.length || ''
       document.getElementById('count-discard').textContent = discardItems.length || ''
 
-      // Render Nuuly tab — grouped by collection
       document.getElementById('nuuly-sections').innerHTML =
         renderGrouped(nuulyItems, false) ||
         `<div class="empty-state">No Nuuly returns${query ? ' matching your search' : ''} yet.</div>`
 
-      // Render Discard tab — grouped by collection
       document.getElementById('discard-sections').innerHTML =
         renderGrouped(discardItems, true) ||
         `<div class="empty-state">No discarded items${query ? ' matching your search' : ''} yet.</div>`
