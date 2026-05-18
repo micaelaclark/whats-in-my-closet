@@ -701,8 +701,8 @@
   </div>
 
   <script>
-    const COLLECTIONS = ['pants', 'skirts', 'dresses', 'shirts', 'pullovers', 'sweaters', 'jackets', 'shoes']
-    const LABELS = { pants: 'Pants', skirts: 'Skirts', dresses: 'Dresses', shirts: 'Shirts', pullovers: 'Pull Overs', sweaters: 'Sweaters', jackets: 'Jackets', shoes: 'Shoes' }
+    const COLLECTIONS = ['pants', 'skirts', 'shorts', 'dresses', 'shirts', 'pullovers', 'sweaters', 'jackets', 'shoes']
+    const LABELS = { pants: 'Pants', skirts: 'Skirts', shorts: 'Shorts', dresses: 'Dresses', shirts: 'Shirts', pullovers: 'Pull Overs', sweaters: 'Sweaters', jackets: 'Jackets', shoes: 'Shoes' }
 
     const COLOR_MAP = {
       // Neutrals
@@ -809,7 +809,7 @@
           <span class="card-add-label">Add item</span>
         </div>`
       return `
-        <div class="section" id="section-${collection}">
+        <div class="section collapsed" id="section-${collection}">
           <div class="section-header" onclick="toggleSection('${collection}')">
             <h2>${label}<span class="section-chevron">▾</span></h2>
             <span class="section-count">${active.length} item${active.length !== 1 ? 's' : ''}</span>
@@ -889,7 +889,7 @@
     }
 
     const COLLECTION_COLORS = {
-      pants: '#89aed4', skirts: '#e8a4b8', dresses: '#e8a4b8', shirts: '#d4896a', pullovers: '#d4a8c4', sweaters: '#c4a882', jackets: '#aa8ec8', shoes: '#a8c4b8'
+      pants: '#89aed4', skirts: '#e8a4b8', shorts: '#d4c48a', dresses: '#e8a4b8', shirts: '#d4896a', pullovers: '#d4a8c4', sweaters: '#c4a882', jackets: '#aa8ec8', shoes: '#a8c4b8'
     }
     let scatterChart = null
     let brandChart = null
