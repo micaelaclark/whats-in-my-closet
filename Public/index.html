@@ -545,39 +545,6 @@
     .chart-filter:hover { border-color: #b09070; color: #3d2c1e; }
     .chart-filter.active { background: #3d2c1e; border-color: #3d2c1e; color: #fff; }
 
-    .suggestion-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 12px;
-      margin-top: 4px;
-    }
-    .suggestion-card {
-      background: #fdf8f3;
-      border: 1px solid #edddd0;
-      border-radius: 10px;
-      padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .suggestion-num {
-      font-size: 0.68rem;
-      color: #c4aa90;
-      font-weight: 500;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-    .suggestion-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 0.95rem;
-      color: #1e140a;
-      font-weight: 500;
-    }
-    .suggestion-reason {
-      font-size: 0.75rem;
-      color: #9a8070;
-      line-height: 1.5;
-    }
   </style>
 </head>
 <body>
@@ -634,9 +601,6 @@
         <canvas id="acquisition-chart"></canvas>
       </div>
     </div>
-
-    <!-- Fashion Insight -->
-    <div id="nuuly-suggestions"></div>
 
     <!-- Clothing sections -->
     <div id="sections"></div>
@@ -1145,98 +1109,6 @@
       })
     }
 
-    function getFashionInsight() {
-      const allItems = COLLECTIONS.flatMap(c => (allData[c] || []).filter(i => !i.archived))
-      const totalItems = allItems.length
-
-      const catStats = {}
-      COLLECTIONS.forEach(col => {
-        const items = (allData[col] || []).filter(i => !i.archived)
-        const totalWears = items.reduce((s, i) => s + (i.timesWorn || 0), 0)
-        catStats[col] = { count: items.length, avg: items.length ? totalWears / items.length : 0 }
-      })
-      const mostWorn = [...allItems].sort((a,b) => (b.timesWorn||0) - (a.timesWorn||0))[0]
-      const leastWorn = [...allItems].filter(i => (i.timesWorn||0) === 0)
-      const topCat = Object.entries(catStats).sort((a,b) => b[1].avg - a[1].avg)[0]
-      const colorCount = {}
-      allItems.forEach(i => {
-        const c = (Array.isArray(i.color) ? i.color[0] : i.color || '').toLowerCase().trim()
-        if (c) colorCount[c] = (colorCount[c] || 0) + 1
-      })
-      const topColor = Object.entries(colorCount).sort((a,b) => b[1]-a[1])[0]?.[0] || 'neutral'
-      const tryColors = ['red','yellow','orange','pink','green','purple','printed','striped']
-      const missingColor = tryColors.find(c => !colorCount[c]) || 'a bold new color'
-
-      const tips = [
-        {
-          heading: 'The cost-per-wear rule',
-          body: `You have ${totalItems} items in your closet. The ones you'll never regret buying are the ones you wear on repeat${mostWorn ? ` — like your ${mostWorn.name}` : ''}. Before adding anything new, ask: will I wear this at least 30 times?`
-        },
-        {
-          heading: 'Embrace a color you avoid',
-          body: `Your closet leans heavily ${topColor}. This week, try styling something in ${missingColor} — renting it first is a zero-risk way to see if it's actually you.`
-        },
-        {
-          heading: 'The outfit formula that always works',
-          body: `One statement piece + two basics. Let your most-worn item lead and build quietly around it. Restraint reads as intention.`
-        },
-        {
-          heading: 'Wear your unworn',
-          body: `${leastWorn.length > 0 ? `You have ${leastWorn.length} item${leastWorn.length !== 1 ? 's' : ''} sitting at 0 wears.` : 'Everything in your closet has been worn — great sign.'} Challenge yourself to style one forgotten piece this week before reaching for a favorite.`
-        },
-        {
-          heading: 'Texture over print',
-          body: `When in doubt, reach for texture — bouclé, ribbed knit, satin, linen. It adds visual interest without committing to a pattern, and it photographs beautifully.`
-        },
-        {
-          heading: `Double down on your best category`,
-          body: `${topCat ? `Your ${LABELS[topCat[0]].toLowerCase()} get worn the most (${topCat[1].avg.toFixed(1)}× on average).` : 'Your most-worn category is pulling its weight.'} Invest in quality here — it's clearly your uniform.`
-        },
-        {
-          heading: 'The tuck trick',
-          body: `A half-tuck or front-tuck transforms any top instantly. It adds shape, defines the waist, and makes an outfit look considered rather than thrown on.`
-        },
-        {
-          heading: 'Monochrome dressing',
-          body: `Try wearing head-to-toe ${topColor} in different shades and textures this week. Tonal dressing is one of the easiest ways to look put-together with zero effort.`
-        },
-        {
-          heading: 'Proportion is everything',
-          body: `Oversized on top → slim on the bottom. Flowy skirt → fitted top. Balancing volume is the secret behind every outfit that looks intentional.`
-        },
-        {
-          heading: 'Wear it differently',
-          body: `Before buying something new, try styling your existing pieces in a new way — tucked, layered, belted, or backwards. You probably have more outfits than you think.`
-        },
-        {
-          heading: 'The power of a great jacket',
-          body: `A jacket changes everything it touches. If yours aren't getting worn, try throwing one over an outfit you'd normally call "done" — it instantly adds structure and polish.`
-        },
-        {
-          heading: 'Shop your closet first',
-          body: `Before your next Nuuly rental order, spend 10 minutes trying on items you haven't worn recently. You might rediscover exactly what you were about to rent.`
-        },
-      ]
-
-      const week = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000))
-      return tips[week % tips.length]
-    }
-
-    function renderNuulySuggestions() {
-      const el = document.getElementById('nuuly-suggestions')
-      if (!el) return
-      const tip = getFashionInsight()
-      el.innerHTML = `
-        <div class="chart-section">
-          <h2>Fashion Insight</h2>
-          <p class="chart-subtitle">updated weekly · tailored to your closet</p>
-          <div class="suggestion-card" style="max-width:640px">
-            <div class="suggestion-title">${tip.heading}</div>
-            <div class="suggestion-reason" style="font-size:0.85rem;margin-top:4px">${tip.body}</div>
-          </div>
-        </div>`
-    }
-
     let editTarget = { collection: null, id: null }
 
     function openEditModal(collection, id) {
@@ -1377,7 +1249,6 @@
       renderBrandChart()
       renderColorChart()
       renderAcquisitionChart()
-      renderNuulySuggestions()
     }
 
     loadAll()
