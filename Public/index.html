@@ -805,8 +805,15 @@
     let allData = Object.fromEntries(COLLECTIONS.map(c => [c, []]))
 
     function renderAll(data) {
+      const openSections = COLLECTIONS.filter(c => {
+        const el = document.getElementById(`section-${c}`)
+        return el && !el.classList.contains('collapsed')
+      })
       document.getElementById('sections').innerHTML =
         COLLECTIONS.map(c => renderSection(c, data[c] || [])).join('')
+      openSections.forEach(c => {
+        document.getElementById(`section-${c}`).classList.remove('collapsed')
+      })
     }
 
     function toggleSection(collection) {
