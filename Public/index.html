@@ -710,6 +710,7 @@
   <script>
     const COLLECTIONS = ['pants', 'skirts', 'shorts', 'dresses', 'shirts', 'pullovers', 'sweaters', 'jackets', 'shoes', 'bags']
     const LABELS = { pants: 'Pants', skirts: 'Skirts', shorts: 'Shorts', dresses: 'Dresses', shirts: 'Shirts', pullovers: 'Pull Overs', sweaters: 'Sweaters', jackets: 'Jackets', shoes: 'Shoes', bags: 'Bags' }
+    const LEAST_WORN_EXCLUDE = new Set(['bags'])
 
     const COLOR_MAP = {
       // Neutrals
@@ -1291,7 +1292,7 @@
 
     function renderLeastWorn() {
       const allItems = []
-      COLLECTIONS.forEach(col => {
+      COLLECTIONS.filter(col => !LEAST_WORN_EXCLUDE.has(col)).forEach(col => {
         (allData[col] || []).filter(i => !i.archived).forEach(item => {
           allItems.push({ ...item, _collection: col })
         })
