@@ -1290,6 +1290,26 @@
       await loadAll()
     }
 
+    function itemAgeLabel(item) {
+      const date = item.dateAdded
+        ? new Date(item.dateAdded)
+        : new Date(parseInt(String(item._id).substring(0, 8), 16) * 1000)
+      const days = Math.floor((new Date() - date) / 86400000)
+      let ageText
+      if (days < 30) {
+        ageText = `${days} day${days === 1 ? '' : 's'}`
+      } else if (days < 365) {
+        const months = Math.floor(days / 30)
+        ageText = `${months} month${months === 1 ? '' : 's'}`
+      } else {
+        const years = Math.floor(days / 365)
+        const months = Math.floor((days % 365) / 30)
+        ageText = `${years} year${years === 1 ? '' : 's'}` + (months ? `, ${months} month${months === 1 ? '' : 's'}` : '')
+      }
+      const dateStr = date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+      return `Added ${dateStr} — ${ageText} old`
+    }
+
     function renderLeastWorn() {
       const allItems = []
       COLLECTIONS.filter(col => !LEAST_WORN_EXCLUDE.has(col)).forEach(col => {
@@ -1310,7 +1330,7 @@
         const swatchStyle = isGrad ? `background:${swatchCss};` : `background-color:${swatchCss};`
         const meta = [LABELS[item._collection], item.brand].filter(Boolean).join(' · ')
         return `
-          <div class="lw-card">
+          <div class="lw-card" title="${escHtml(itemAgeLabel(item))}">
             <div class="lw-swatch" style="${swatchStyle}"></div>
             <div class="lw-info">
               <div class="lw-name">${escHtml(item.name)}</div>
