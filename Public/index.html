@@ -657,7 +657,7 @@
       <div id="modal-edit-panel">
         <div class="modal-title">Edit item</div>
         <div class="form-grid">
-          <select id="edit-collection" class="full"></select>
+          <select id="edit-collection" class="full" onchange="onEditCollectionChange()"></select>
           <input type="text" id="edit-name" placeholder="Name (required)" class="full" />
           <input type="text" id="edit-color" placeholder="Main color (e.g. green)" />
           <input type="text" id="edit-subcolor" placeholder="Subcolor (e.g. lime green)" />
@@ -774,7 +774,8 @@
       const swatchCss = colorToCss(swatchLookup) !== '#ccc' ? colorToCss(swatchLookup) : colorToCss(mainColor)
       const isGrad = swatchCss.startsWith('linear-gradient')
       const swatchStyle = isGrad ? `background:${swatchCss};` : `background-color:${swatchCss};`
-      const worn = item.timesWorn != null ? `<span class="card-worn">×${item.timesWorn}</span>` : ''
+      const tracksWear = collection !== 'bags'
+      const worn = tracksWear && item.timesWorn != null ? `<span class="card-worn">×${item.timesWorn}</span>` : ''
       const brand = item.brand ? `<span class="card-brand">${escHtml(item.brand)}</span>` : ''
       const subcolorLabel = sub ? `<span class="card-subcolor">${escHtml(sub)}</span>` : ''
       const nuuly = item.nuuly ? `<span class="nuuly-badge">Nuuly</span>` : ''
@@ -782,6 +783,9 @@
       const thrift = item.thrift ? `<span class="thrift-badge">Thrift</span>` : ''
       const swap = item.swap ? `<span class="swap-badge">Swap</span>` : ''
       const badges = [nuuly, nuulyBought, thrift, swap].filter(Boolean).join('')
+      const wearBtn = tracksWear
+        ? `<button class="card-action-btn card-action-btn--wear" onclick="addWear('${collection}','${item._id}')">+ wear</button>`
+        : ''
       return `
         <div class="card">
           <div class="card-swatch">
@@ -794,7 +798,7 @@
             <div class="card-name">${escHtml(item.name)}</div>
             <div class="card-meta-row">${brand}${subcolorLabel}</div>
             <div class="card-actions">
-              <button class="card-action-btn card-action-btn--wear" onclick="addWear('${collection}','${item._id}')">+ wear</button>
+              ${wearBtn}
               <button class="card-action-btn card-action-btn--edit" onclick="openEditModal('${collection}','${item._id}')">edit</button>
             </div>
           </div>
@@ -816,6 +820,9 @@
           <span class="card-add-icon">+</span>
           <span class="card-add-label">Add item</span>
         </div>`
+      const timesWornInput = collection !== 'bags'
+        ? `<input type="number" id="${collection}-timesWorn" placeholder="Times worn" min="0" />`
+        : ''
       return `
         <div class="section collapsed" id="section-${collection}">
           <div class="section-header" onclick="toggleSection('${collection}')">
@@ -829,7 +836,7 @@
               <input type="text" id="${collection}-color" placeholder="Main color (e.g. green)" required />
               <input type="text" id="${collection}-subcolor" placeholder="Subcolor (e.g. lime green)" />
               <input type="text" id="${collection}-brand" placeholder="Brand" />
-              <input type="number" id="${collection}-timesWorn" placeholder="Times worn" min="0" />
+              ${timesWornInput}
               <input type="text" id="${collection}-notes" placeholder="Notes" class="full" />
             </div>
             <div style="display:flex;gap:16px;flex-wrap:wrap;">
@@ -876,13 +883,13 @@
       }
       nameEl.style.borderColor = ''
       const colorVal = document.getElementById(`${collection}-color`).value.trim()
+      const timesWornEl = document.getElementById(`${collection}-timesWorn`)
       const body = {
         name: nameEl.value.trim(),
         color: colorVal ? [colorVal] : undefined,
         subcolor: document.getElementById(`${collection}-subcolor`).value.trim() || undefined,
         brand: document.getElementById(`${collection}-brand`).value.trim() || undefined,
-        timesWorn: document.getElementById(`${collection}-timesWorn`).value
-          ? parseInt(document.getElementById(`${collection}-timesWorn`).value) : 0,
+        timesWorn: timesWornEl && timesWornEl.value ? parseInt(timesWornEl.value) : 0,
         notes: document.getElementById(`${collection}-notes`).value.trim() || undefined,
         nuuly: document.getElementById(`${collection}-nuuly`).checked || undefined,
         nuulyBought: document.getElementById(`${collection}-nuulyBought`).checked || undefined,
@@ -913,7 +920,7 @@
 
     function renderScatterChart() {
       const today = new Date()
-      const datasets = COLLECTIONS.map(col => ({
+      const datasets = COLLECTIONS.filter(col => !LEAST_WORN_EXCLUDE.has(col)).map(col => ({
         label: LABELS[col],
         data: (allData[col] || []).filter(i => !i.archived).map(item => {
           const date = item.dateAdded
@@ -1179,8 +1186,14 @@
       document.getElementById('edit-nuulyBought').checked = !!item.nuulyBought
       document.getElementById('edit-thrift').checked = !!item.thrift
       document.getElementById('edit-swap').checked = !!item.swap
+      onEditCollectionChange()
 
       document.getElementById('edit-modal').classList.add('open')
+    }
+
+    function onEditCollectionChange() {
+      const collection = document.getElementById('edit-collection').value
+      document.getElementById('edit-timesWorn').style.display = collection === 'bags' ? 'none' : ''
     }
 
     function closeEditModal() {
@@ -1264,7 +1277,7 @@
         color: colorEl.value.trim() ? [colorEl.value.trim()] : undefined,
         subcolor: document.getElementById('edit-subcolor').value.trim() || undefined,
         brand: document.getElementById('edit-brand').value.trim() || undefined,
-        timesWorn: document.getElementById('edit-timesWorn').value
+        timesWorn: newCollection !== 'bags' && document.getElementById('edit-timesWorn').value
           ? parseInt(document.getElementById('edit-timesWorn').value) : 0,
         notes: document.getElementById('edit-notes').value.trim() || undefined,
         nuuly: document.getElementById('edit-nuuly').checked || undefined,

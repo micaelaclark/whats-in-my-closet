@@ -315,7 +315,7 @@
       const swatchCss = colorToCss(swatchLookup) !== '#ccc' ? colorToCss(swatchLookup) : colorToCss(mainColor)
       const isGrad = swatchCss.startsWith('linear-gradient')
       const swatchStyle = isGrad ? `background:${swatchCss};` : `background-color:${swatchCss};`
-      const worn = item.timesWorn != null ? `<span class="card-worn">×${item.timesWorn}</span>` : ''
+      const worn = collection !== 'bags' && item.timesWorn != null ? `<span class="card-worn">×${item.timesWorn}</span>` : ''
       const brand = item.brand ? `<span class="card-brand">${escHtml(item.brand)}</span>` : ''
       const subcolorLabel = sub ? `<span style="font-size:0.68rem;color:#a8957e">${escHtml(sub)}</span>` : ''
       const nuuly = item.nuuly ? `<span class="nuuly-badge">Nuuly</span>` : ''
