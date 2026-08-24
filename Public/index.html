@@ -205,15 +205,6 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .nuuly-badge {
-      font-size: 0.62rem;
-      font-weight: 600;
-      color: #7c3aed;
-      background: #f3eeff;
-      border: 1px solid #ddd6fe;
-      border-radius: 20px;
-      padding: 1px 6px;
-    }
     .swap-badge {
       font-size: 0.62rem;
       font-weight: 600;
@@ -441,35 +432,6 @@
     }
     .btn-archive:hover { background: #fdf5ec; border-color: #b8844a; }
 
-    .archive-choices {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-    .btn-archive-type {
-      flex: 1;
-      padding: 14px 12px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-family: 'DM Sans', inherit;
-      font-size: 0.85rem;
-      font-weight: 500;
-      border: 1.5px solid;
-      transition: all 0.15s;
-      text-align: left;
-      line-height: 1.3;
-    }
-    .btn-archive-type small {
-      display: block;
-      font-weight: 300;
-      font-size: 0.72rem;
-      margin-top: 3px;
-      opacity: 0.75;
-    }
-    .btn-archive-nuuly { color: #7c3aed; border-color: #ddd6fe; background: #faf7ff; }
-    .btn-archive-nuuly:hover { background: #f3eeff; border-color: #c4b5fd; }
-    .btn-archive-discard { color: #b8844a; border-color: #e8c99a; background: #fdf9f3; }
-    .btn-archive-discard:hover { background: #fdf5ec; border-color: #b8844a; }
     .modal-subtitle { font-size: 0.82rem; color: #a8957e; margin-bottom: 14px; font-weight: 300; }
     #modal-discard-panel input[type="text"] {
       width: 100%;
@@ -666,7 +628,6 @@
           <input type="text" id="edit-notes" placeholder="Notes" class="full" />
         </div>
         <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;">
-          <label class="check-label"><input type="checkbox" id="edit-nuuly" /> Nuuly</label>
           <label class="check-label"><input type="checkbox" id="edit-nuulyBought" /> Nuuly Bought</label>
           <label class="check-label"><input type="checkbox" id="edit-thrift" /> Thrift</label>
           <label class="check-label"><input type="checkbox" id="edit-swap" /> Swap</label>
@@ -674,35 +635,18 @@
         <div class="form-actions">
           <button class="btn-submit" onclick="saveEdit()">Save</button>
           <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
-          <button class="btn-archive" onclick="showArchiveChoice()">Archive</button>
+          <button class="btn-archive" onclick="showDiscardReason()">Archive</button>
         </div>
       </div>
 
-      <!-- Panel 2: Archive type choice -->
-      <div id="modal-archive-panel" style="display:none">
-        <div class="modal-title">Archive as…</div>
-        <p class="modal-subtitle">How would you like to archive this item?</p>
-        <div class="archive-choices">
-          <button class="btn-archive-type btn-archive-nuuly" onclick="confirmNuulyArchive()">
-            Nuuly Return
-            <small>Returning a rented item</small>
-          </button>
-          <button class="btn-archive-type btn-archive-discard" onclick="showDiscardReason()">
-            Discard
-            <small>Getting rid of an owned item</small>
-          </button>
-        </div>
-        <button class="btn-cancel" style="width:100%" onclick="backToEdit()">← Back to edit</button>
-      </div>
-
-      <!-- Panel 3: Discard reason -->
+      <!-- Panel 2: Discard reason -->
       <div id="modal-discard-panel" style="display:none">
         <div class="modal-title">Why are you discarding this?</div>
         <p class="modal-subtitle">Saved on the archived card so you can search it later.</p>
         <input type="text" id="discard-reason" placeholder="e.g. doesn't fit, worn out, donated…" />
         <div class="form-actions" style="margin-top:14px">
           <button class="btn-submit" onclick="confirmDiscard()">Discard item</button>
-          <button class="btn-cancel" onclick="backToArchiveChoice()">← Back</button>
+          <button class="btn-cancel" onclick="backToEdit()">← Back</button>
         </div>
       </div></div>
   </div>
@@ -778,11 +722,10 @@
       const worn = tracksWear && item.timesWorn != null ? `<span class="card-worn">×${item.timesWorn}</span>` : ''
       const brand = item.brand ? `<span class="card-brand">${escHtml(item.brand)}</span>` : ''
       const subcolorLabel = sub ? `<span class="card-subcolor">${escHtml(sub)}</span>` : ''
-      const nuuly = item.nuuly ? `<span class="nuuly-badge">Nuuly</span>` : ''
       const nuulyBought = item.nuulyBought ? `<span class="nuuly-bought-badge">NB</span>` : ''
       const thrift = item.thrift ? `<span class="thrift-badge">Thrift</span>` : ''
       const swap = item.swap ? `<span class="swap-badge">Swap</span>` : ''
-      const badges = [nuuly, nuulyBought, thrift, swap].filter(Boolean).join('')
+      const badges = [nuulyBought, thrift, swap].filter(Boolean).join('')
       const wearBtn = tracksWear
         ? `<button class="card-action-btn card-action-btn--wear" onclick="addWear('${collection}','${item._id}')">+ wear</button>`
         : ''
@@ -840,7 +783,6 @@
               <input type="text" id="${collection}-notes" placeholder="Notes" class="full" />
             </div>
             <div style="display:flex;gap:16px;flex-wrap:wrap;">
-              <label class="check-label"><input type="checkbox" id="${collection}-nuuly" /> Nuuly</label>
               <label class="check-label"><input type="checkbox" id="${collection}-nuulyBought" /> Nuuly Bought</label>
               <label class="check-label"><input type="checkbox" id="${collection}-thrift" /> Thrift</label>
               <label class="check-label"><input type="checkbox" id="${collection}-swap" /> Swap</label>
@@ -891,7 +833,6 @@
         brand: document.getElementById(`${collection}-brand`).value.trim() || undefined,
         timesWorn: timesWornEl && timesWornEl.value ? parseInt(timesWornEl.value) : 0,
         notes: document.getElementById(`${collection}-notes`).value.trim() || undefined,
-        nuuly: document.getElementById(`${collection}-nuuly`).checked || undefined,
         nuulyBought: document.getElementById(`${collection}-nuulyBought`).checked || undefined,
         thrift: document.getElementById(`${collection}-thrift`).checked || undefined,
         swap: document.getElementById(`${collection}-swap`).checked || undefined,
@@ -1126,12 +1067,11 @@
     }
 
     function renderAcquisitionChart() {
-      const counts = { Thrift: 0, Swap: 0, Nuuly: 0, 'Nuuly Bought': 0, Bought: 0 }
+      const counts = { Thrift: 0, Swap: 0, 'Nuuly Bought': 0, Bought: 0 }
       COLLECTIONS.forEach(col => {
         (allData[col] || []).filter(i => !i.archived).forEach(item => {
           if (item.thrift) counts.Thrift++
           else if (item.swap) counts.Swap++
-          else if (item.nuuly) counts.Nuuly++
           else if (item.nuulyBought) counts['Nuuly Bought']++
           else counts.Bought++
         })
@@ -1139,7 +1079,7 @@
       const total = Object.values(counts).reduce((a, b) => a + b, 0)
       const labels = Object.keys(counts).filter(k => counts[k] > 0)
       const data = labels.map(k => counts[k])
-      const colors = { Thrift: '#a8c4a0', Swap: '#a8b8d4', Nuuly: '#d4a8c4', 'Nuuly Bought': '#c4a8d4', Bought: '#e8d0b8' }
+      const colors = { Thrift: '#a8c4a0', Swap: '#a8b8d4', 'Nuuly Bought': '#c4a8d4', Bought: '#e8d0b8' }
 
       const ctx = document.getElementById('acquisition-chart').getContext('2d')
       if (acquisitionChart) acquisitionChart.destroy()
@@ -1182,7 +1122,6 @@
       document.getElementById('edit-brand').value = item.brand || ''
       document.getElementById('edit-timesWorn').value = item.timesWorn != null ? item.timesWorn : ''
       document.getElementById('edit-notes').value = item.notes || ''
-      document.getElementById('edit-nuuly').checked = !!item.nuuly
       document.getElementById('edit-nuulyBought').checked = !!item.nuulyBought
       document.getElementById('edit-thrift').checked = !!item.thrift
       document.getElementById('edit-swap').checked = !!item.swap
@@ -1199,7 +1138,6 @@
     function closeEditModal() {
       document.getElementById('edit-modal').classList.remove('open')
       document.getElementById('modal-edit-panel').style.display = 'block'
-      document.getElementById('modal-archive-panel').style.display = 'none'
       document.getElementById('modal-discard-panel').style.display = 'none'
       editTarget = { collection: null, id: null }
     }
@@ -1213,39 +1151,16 @@
       await loadAll()
     }
 
-    function showArchiveChoice() {
-      document.getElementById('modal-edit-panel').style.display = 'none'
-      document.getElementById('modal-archive-panel').style.display = 'block'
-    }
-
     function backToEdit() {
       document.getElementById('modal-edit-panel').style.display = 'block'
-      document.getElementById('modal-archive-panel').style.display = 'none'
       document.getElementById('modal-discard-panel').style.display = 'none'
     }
 
     function showDiscardReason() {
-      document.getElementById('modal-archive-panel').style.display = 'none'
+      document.getElementById('modal-edit-panel').style.display = 'none'
       document.getElementById('modal-discard-panel').style.display = 'block'
       document.getElementById('discard-reason').value = ''
       document.getElementById('discard-reason').focus()
-    }
-
-    function backToArchiveChoice() {
-      document.getElementById('modal-archive-panel').style.display = 'block'
-      document.getElementById('modal-discard-panel').style.display = 'none'
-    }
-
-    async function confirmNuulyArchive() {
-      const { collection, id } = editTarget
-      if (!collection || !id) return
-      await fetch(`/api/${collection}/${id}/archive`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ archiveType: 'nuuly' })
-      })
-      closeEditModal()
-      await loadAll()
     }
 
     async function confirmDiscard() {
@@ -1280,7 +1195,6 @@
         timesWorn: newCollection !== 'bags' && document.getElementById('edit-timesWorn').value
           ? parseInt(document.getElementById('edit-timesWorn').value) : 0,
         notes: document.getElementById('edit-notes').value.trim() || undefined,
-        nuuly: document.getElementById('edit-nuuly').checked || undefined,
         nuulyBought: document.getElementById('edit-nuulyBought').checked || undefined,
         thrift: document.getElementById('edit-thrift').checked || undefined,
         swap: document.getElementById('edit-swap').checked || undefined,

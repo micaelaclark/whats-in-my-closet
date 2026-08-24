@@ -77,41 +77,7 @@
     .search-input:focus { border-color: #b09070; box-shadow: 0 0 0 3px rgba(176,144,112,0.1); }
     .search-input::placeholder { color: #c4aa90; }
 
-    /* Tabs */
-    .tabs {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 24px;
-      border-bottom: 1px solid #edddd0;
-      padding-bottom: 0;
-    }
-    .tab {
-      padding: 8px 18px 10px;
-      font-size: 0.88rem;
-      font-weight: 500;
-      color: #b09070;
-      cursor: pointer;
-      border: none;
-      background: none;
-      font-family: 'DM Sans', inherit;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-      transition: color 0.15s, border-color 0.15s;
-    }
-    .tab:hover { color: #3d2c1e; }
-    .tab.active { color: #1e140a; border-bottom-color: #3d2c1e; }
-    .tab-count {
-      display: inline-block;
-      margin-left: 5px;
-      font-size: 0.72rem;
-      font-weight: 400;
-      color: #c4aa90;
-    }
-
     /* Sections */
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-
     .section { margin-bottom: 36px; }
     .section-header {
       display: flex;
@@ -207,7 +173,6 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
-    .nuuly-badge { font-size: 0.62rem; font-weight: 600; color: #7c3aed; background: #f3eeff; border: 1px solid #ddd6fe; border-radius: 20px; padding: 1px 6px; }
     .nuuly-bought-badge { font-size: 0.62rem; font-weight: 600; color: #5a2aad; background: #ede8ff; border: 1px solid #c8b8f8; border-radius: 20px; padding: 1px 6px; }
     .thrift-badge { font-size: 0.62rem; font-weight: 600; color: #8a5a1a; background: #fef3e2; border: 1px solid #f0d098; border-radius: 20px; padding: 1px 6px; }
     .swap-badge { font-size: 0.62rem; font-weight: 600; color: #2a7a5a; background: #eefaf4; border: 1px solid #b6e8d2; border-radius: 20px; padding: 1px 6px; }
@@ -231,7 +196,7 @@
       <div class="header-row">
         <div>
           <h1>Archive</h1>
-          <p>returned rentals &amp; discarded items</p>
+          <p>discarded items</p>
         </div>
         <a href="/" class="back-link">← My Closet</a>
       </div>
@@ -241,21 +206,7 @@
       <input class="search-input" id="search" type="text" placeholder="Search by name, brand, or discard reason…" oninput="renderAll()" />
     </div>
 
-    <div class="tabs">
-      <button class="tab active" id="tab-nuuly" onclick="switchTab('nuuly')">
-        Nuuly Returns <span class="tab-count" id="count-nuuly"></span>
-      </button>
-      <button class="tab" id="tab-discard" onclick="switchTab('discard')">
-        Discarded <span class="tab-count" id="count-discard"></span>
-      </button>
-    </div>
-
-    <div class="tab-panel active" id="panel-nuuly">
-      <div id="nuuly-sections"></div>
-    </div>
-    <div class="tab-panel" id="panel-discard">
-      <div id="discard-sections"></div>
-    </div>
+    <div id="archive-sections"></div>
   </div>
 
   <script>
@@ -318,13 +269,12 @@
       const worn = collection !== 'bags' && item.timesWorn != null ? `<span class="card-worn">×${item.timesWorn}</span>` : ''
       const brand = item.brand ? `<span class="card-brand">${escHtml(item.brand)}</span>` : ''
       const subcolorLabel = sub ? `<span style="font-size:0.68rem;color:#a8957e">${escHtml(sub)}</span>` : ''
-      const nuuly = item.nuuly ? `<span class="nuuly-badge">Nuuly</span>` : ''
       const nuulyBought = item.nuulyBought ? `<span class="nuuly-bought-badge">NB</span>` : ''
       const thrift = item.thrift ? `<span class="thrift-badge">Thrift</span>` : ''
       const swap = item.swap ? `<span class="swap-badge">Swap</span>` : ''
       const reason = showReason && item.discardReason
         ? `<div class="card-reason">${escHtml(item.discardReason)}</div>` : ''
-      const badges = [nuuly, nuulyBought, thrift, swap].filter(Boolean).join('')
+      const badges = [nuulyBought, thrift, swap].filter(Boolean).join('')
       return `
         <div class="card">
           <div class="card-swatch">
@@ -348,18 +298,10 @@
 
     let allData = {}
 
-    function switchTab(tab) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
-      document.getElementById(`tab-${tab}`).classList.add('active')
-      document.getElementById(`panel-${tab}`).classList.add('active')
-    }
-
     function renderAll() {
       const query = document.getElementById('search').value.toLowerCase().trim()
 
-      const nuulyItems = []
-      const discardItems = []
+      const archivedItems = []
 
       COLLECTIONS.forEach(col => {
         (allData[col] || []).filter(i => i.archived).forEach(item => {
@@ -368,20 +310,12 @@
             || item.brand?.toLowerCase().includes(query)
             || item.discardReason?.toLowerCase().includes(query)
           if (!matchesQuery) return
-          if (item.archiveType === 'discard') discardItems.push({ item, col })
-          else nuulyItems.push({ item, col })
+          archivedItems.push({ item, col })
         })
       })
 
-      document.getElementById('count-nuuly').textContent = nuulyItems.length || ''
-      document.getElementById('count-discard').textContent = discardItems.length || ''
-
-      document.getElementById('nuuly-sections').innerHTML =
-        renderGrouped(nuulyItems, false) ||
-        `<div class="empty-state">No Nuuly returns${query ? ' matching your search' : ''} yet.</div>`
-
-      document.getElementById('discard-sections').innerHTML =
-        renderGrouped(discardItems, true) ||
+      document.getElementById('archive-sections').innerHTML =
+        renderGrouped(archivedItems, true) ||
         `<div class="empty-state">No discarded items${query ? ' matching your search' : ''} yet.</div>`
     }
 
