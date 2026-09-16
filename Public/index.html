@@ -447,6 +447,35 @@
     }
     #modal-discard-panel input[type="text"]:focus { border-color: #b09070; background: #fff; }
 
+    /* Top stats */
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+    @media (max-width: 480px) { .stats-row { grid-template-columns: 1fr; } }
+    .stat-tile {
+      background: #fffcf8;
+      border: 1px solid #edddd0;
+      border-radius: 14px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 4px rgba(60,30,10,0.04);
+      text-align: center;
+    }
+    .stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 500;
+      color: #1e140a;
+    }
+    .stat-label {
+      font-size: 0.78rem;
+      color: #b09070;
+      margin-top: 4px;
+      font-weight: 300;
+    }
+
     /* Charts */
     .chart-section {
       background: #fffcf8;
@@ -550,6 +579,18 @@
         <a href="/archive.html" class="archive-nav-link">Archive</a>
       </div>
     </header>
+
+    <!-- Top stats -->
+    <div class="stats-row">
+      <div class="stat-tile">
+        <div class="stat-value" id="stat-lifespan">–</div>
+        <div class="stat-label">Avg. lifespan per item</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-value" id="stat-wears">–</div>
+        <div class="stat-label">Avg. wears per item</div>
+      </div>
+    </div>
 
     <!-- Scatter chart -->
     <div class="chart-section">
@@ -733,9 +774,26 @@
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
     }
 
+    function itemAgeDays(item) {
+      const date = item.dateAdded
+        ? new Date(item.dateAdded)
+        : new Date(parseInt(String(item._id).substring(0, 8), 16) * 1000)
+      return Math.floor((new Date() - date) / 86400000)
+    }
+
+    function formatDuration(days) {
+      if (days < 30) return `${days} day${days === 1 ? '' : 's'}`
+      if (days < 365) {
+        const months = Math.round(days / 30)
+        return `${months} month${months === 1 ? '' : 's'}`
+      }
+      const years = Math.round(days / 365 * 10) / 10
+      return `${years} year${years === 1 ? '' : 's'}`
+    }
+
     function renderSection(collection, items) {
       const label = LABELS[collection]
-      const active = items.filter(i => !i.archived)
+      const active = items.filter(i => !i.archived).sort((a, b) => (b.timesWorn || 0) - (a.timesWorn || 0))
       const cards = active.length
         ? active.map(i => renderCard(i, collection)).join('')
         : `<div class="empty-state">No items yet.</div>`
@@ -840,20 +898,14 @@
     let acquisitionChart = null
 
     function renderScatterChart() {
-      const today = new Date()
       const datasets = COLLECTIONS.filter(col => !LEAST_WORN_EXCLUDE.has(col)).map(col => ({
         label: LABELS[col],
-        data: (allData[col] || []).filter(i => !i.archived).map(item => {
-          const date = item.dateAdded
-            ? new Date(item.dateAdded)
-            : new Date(parseInt(String(item._id).substring(0, 8), 16) * 1000)
-          return {
-            x: Math.floor((today - date) / 86400000),
-            y: item.timesWorn || 0,
-            _name: item.name,
-            _brand: item.brand || '',
-          }
-        }),
+        data: (allData[col] || []).filter(i => !i.archived).map(item => ({
+          x: itemAgeDays(item),
+          y: item.timesWorn || 0,
+          _name: item.name,
+          _brand: item.brand || '',
+        })),
         backgroundColor: COLLECTION_COLORS[col],
         pointRadius: 8,
         pointHoverRadius: 12,
@@ -1130,7 +1182,7 @@
       const date = item.dateAdded
         ? new Date(item.dateAdded)
         : new Date(parseInt(String(item._id).substring(0, 8), 16) * 1000)
-      const days = Math.floor((new Date() - date) / 86400000)
+      const days = itemAgeDays(item)
       let ageText
       if (days < 30) {
         ageText = `${days} day${days === 1 ? '' : 's'}`
@@ -1144,6 +1196,26 @@
       }
       const dateStr = date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
       return `Added ${dateStr} — ${ageText} old`
+    }
+
+    function renderStats() {
+      const allItems = []
+      COLLECTIONS.forEach(col => {
+        (allData[col] || []).filter(i => !i.archived).forEach(item => {
+          allItems.push({ ...item, _collection: col })
+        })
+      })
+      const lifespanEl = document.getElementById('stat-lifespan')
+      const wearsEl = document.getElementById('stat-wears')
+
+      lifespanEl.textContent = allItems.length
+        ? formatDuration(Math.round(allItems.reduce((sum, i) => sum + itemAgeDays(i), 0) / allItems.length))
+        : '–'
+
+      const wearItems = allItems.filter(i => !LEAST_WORN_EXCLUDE.has(i._collection))
+      wearsEl.textContent = wearItems.length
+        ? `${(wearItems.reduce((sum, i) => sum + (i.timesWorn || 0), 0) / wearItems.length).toFixed(1)}×`
+        : '–'
     }
 
     function renderLeastWorn() {
@@ -1188,6 +1260,7 @@
       )
       COLLECTIONS.forEach((c, i) => { allData[c] = results[i] })
       renderAll(allData)
+      renderStats()
       renderLeastWorn()
       renderScatterChart()
       renderBrandChart()
