@@ -211,6 +211,7 @@
 
   <script>
     const COLLECTIONS = ['pants', 'shirts', 'skirts', 'shorts', 'dresses', 'pullovers', 'sweaters', 'jackets', 'shoes']
+    const WEAR_UNTRACKED = new Set(['bags', 'shoes'])
     const LABELS = { pants: 'Pants', skirts: 'Skirts', shorts: 'Shorts', dresses: 'Dresses', shirts: 'Shirts', pullovers: 'Pull Overs', sweaters: 'Sweaters', jackets: 'Jackets', shoes: 'Shoes' }
 
     const COLOR_MAP = {
@@ -266,7 +267,7 @@
       const swatchCss = colorToCss(swatchLookup) !== '#ccc' ? colorToCss(swatchLookup) : colorToCss(mainColor)
       const isGrad = swatchCss.startsWith('linear-gradient')
       const swatchStyle = isGrad ? `background:${swatchCss};` : `background-color:${swatchCss};`
-      const worn = collection !== 'bags' && item.timesWorn != null ? `<span class="card-worn">×${item.timesWorn}</span>` : ''
+      const worn = !WEAR_UNTRACKED.has(collection) && item.timesWorn != null ? `<span class="card-worn">×${item.timesWorn}</span>` : ''
       const brand = item.brand ? `<span class="card-brand">${escHtml(item.brand)}</span>` : ''
       const subcolorLabel = sub ? `<span style="font-size:0.68rem;color:#a8957e">${escHtml(sub)}</span>` : ''
       const nuulyBought = item.nuulyBought ? `<span class="nuuly-bought-badge">NB</span>` : ''

@@ -676,7 +676,7 @@
   <script>
     const COLLECTIONS = ['pants', 'shirts', 'skirts', 'shorts', 'dresses', 'pullovers', 'sweaters', 'jackets', 'shoes', 'bags']
     const LABELS = { pants: 'Pants', skirts: 'Skirts', shorts: 'Shorts', dresses: 'Dresses', shirts: 'Shirts', pullovers: 'Pull Overs', sweaters: 'Sweaters', jackets: 'Jackets', shoes: 'Shoes', bags: 'Bags' }
-    const LEAST_WORN_EXCLUDE = new Set(['bags'])
+    const WEAR_UNTRACKED = new Set(['bags', 'shoes'])
 
     const COLOR_MAP = {
       // Neutrals
@@ -740,7 +740,7 @@
       const swatchCss = colorToCss(swatchLookup) !== '#ccc' ? colorToCss(swatchLookup) : colorToCss(mainColor)
       const isGrad = swatchCss.startsWith('linear-gradient')
       const swatchStyle = isGrad ? `background:${swatchCss};` : `background-color:${swatchCss};`
-      const tracksWear = collection !== 'bags'
+      const tracksWear = !WEAR_UNTRACKED.has(collection)
       const worn = tracksWear && item.timesWorn != null ? `<span class="card-worn">×${item.timesWorn}</span>` : ''
       const brand = item.brand ? `<span class="card-brand">${escHtml(item.brand)}</span>` : ''
       const subcolorLabel = sub ? `<span class="card-subcolor">${escHtml(sub)}</span>` : ''
@@ -751,8 +751,9 @@
       const wearBtn = tracksWear
         ? `<button class="card-action-btn card-action-btn--wear" onclick="addWear('${collection}','${item._id}')">+ wear</button>`
         : ''
+      const cardTitle = tracksWear ? '' : ` title="${escHtml(itemAgeLabel(item))}"`
       return `
-        <div class="card">
+        <div class="card"${cardTitle}>
           <div class="card-swatch">
             <div class="card-swatch-fill" style="${swatchStyle}"></div>
             <button class="card-delete" onclick="deleteItem('${collection}','${item._id}')" title="Remove">×</button>
@@ -802,7 +803,7 @@
           <span class="card-add-icon">+</span>
           <span class="card-add-label">Add item</span>
         </div>`
-      const timesWornInput = collection !== 'bags'
+      const timesWornInput = !WEAR_UNTRACKED.has(collection)
         ? `<input type="number" id="${collection}-timesWorn" placeholder="Times worn" min="0" />`
         : ''
       return `
@@ -898,7 +899,7 @@
     let acquisitionChart = null
 
     function renderScatterChart() {
-      const datasets = COLLECTIONS.filter(col => !LEAST_WORN_EXCLUDE.has(col)).map(col => ({
+      const datasets = COLLECTIONS.filter(col => !WEAR_UNTRACKED.has(col)).map(col => ({
         label: LABELS[col],
         data: (allData[col] || []).filter(i => !i.archived).map(item => ({
           x: itemAgeDays(item),
@@ -1093,7 +1094,7 @@
 
     function onEditCollectionChange() {
       const collection = document.getElementById('edit-collection').value
-      document.getElementById('edit-timesWorn').style.display = collection === 'bags' ? 'none' : ''
+      document.getElementById('edit-timesWorn').style.display = WEAR_UNTRACKED.has(collection) ? 'none' : ''
     }
 
     function closeEditModal() {
@@ -1153,7 +1154,7 @@
         color: colorEl.value.trim() ? [colorEl.value.trim()] : undefined,
         subcolor: document.getElementById('edit-subcolor').value.trim() || undefined,
         brand: document.getElementById('edit-brand').value.trim() || undefined,
-        timesWorn: newCollection !== 'bags' && document.getElementById('edit-timesWorn').value
+        timesWorn: !WEAR_UNTRACKED.has(newCollection) && document.getElementById('edit-timesWorn').value
           ? parseInt(document.getElementById('edit-timesWorn').value) : 0,
         notes: document.getElementById('edit-notes').value.trim() || undefined,
         nuulyBought: document.getElementById('edit-nuulyBought').checked || undefined,
@@ -1212,7 +1213,7 @@
         ? formatDuration(Math.round(allItems.reduce((sum, i) => sum + itemAgeDays(i), 0) / allItems.length))
         : '–'
 
-      const wearItems = allItems.filter(i => !LEAST_WORN_EXCLUDE.has(i._collection))
+      const wearItems = allItems.filter(i => !WEAR_UNTRACKED.has(i._collection))
       wearsEl.textContent = wearItems.length
         ? `${(wearItems.reduce((sum, i) => sum + (i.timesWorn || 0), 0) / wearItems.length).toFixed(1)}×`
         : '–'
@@ -1220,7 +1221,7 @@
 
     function renderLeastWorn() {
       const allItems = []
-      COLLECTIONS.filter(col => !LEAST_WORN_EXCLUDE.has(col)).forEach(col => {
+      COLLECTIONS.filter(col => !WEAR_UNTRACKED.has(col)).forEach(col => {
         (allData[col] || []).filter(i => !i.archived).forEach(item => {
           allItems.push({ ...item, _collection: col })
         })
