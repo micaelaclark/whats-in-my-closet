@@ -775,11 +775,14 @@
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
     }
 
-    function itemAgeDays(item) {
-      const date = item.dateAdded
+    function itemCreatedDate(item) {
+      return item.dateAdded
         ? new Date(item.dateAdded)
         : new Date(parseInt(String(item._id).substring(0, 8), 16) * 1000)
-      return Math.floor((new Date() - date) / 86400000)
+    }
+
+    function itemAgeDays(item) {
+      return Math.floor((new Date() - itemCreatedDate(item)) / 86400000)
     }
 
     function formatDuration(days) {
@@ -1162,6 +1165,8 @@
         swap: document.getElementById('edit-swap').checked || undefined,
       }
       if (newCollection !== collection) {
+        const originalItem = (allData[collection] || []).find(i => String(i._id) === String(id))
+        if (originalItem) body.dateAdded = itemCreatedDate(originalItem).toISOString()
         await fetch(`/api/${newCollection}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1180,9 +1185,7 @@
     }
 
     function itemAgeLabel(item) {
-      const date = item.dateAdded
-        ? new Date(item.dateAdded)
-        : new Date(parseInt(String(item._id).substring(0, 8), 16) * 1000)
+      const date = itemCreatedDate(item)
       const days = itemAgeDays(item)
       let ageText
       if (days < 30) {
