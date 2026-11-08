@@ -5,16 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Archive</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --bg: #fdf3ec;
+      --bg-dot: #f2d6c9;
+      --surface: #ffffff;
+      --surface-soft: #fff8f2;
+      --border: #f0dace;
+      --border-strong: #eeb499;
+      --ink: #2b1b30;
+      --ink-soft: #8c7291;
+      --ink-faint: #c6adbd;
+      --accent: #ff6f59;
+      --accent-dark: #e0543f;
+      --accent-soft: #ffe8e1;
+      --accent-purple: #7c3aed;
+      --accent-purple-soft: #f1e8ff;
+      --accent-gold: #c1791f;
+      --accent-gold-soft: #fdf0dd;
+      --accent-2: #1f8a70;
+      --accent-2-soft: #e1f5ef;
+      --shadow: rgba(60,25,60,0.07);
+      --shadow-strong: rgba(60,25,60,0.14);
+    }
+
     body {
-      font-family: 'DM Sans', system-ui, sans-serif;
-      background-color: #fdf8f3;
-      background-image: radial-gradient(#e4d8cc 1px, transparent 1px);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background-color: var(--bg);
+      background-image: radial-gradient(var(--bg-dot) 1px, transparent 1px);
       background-size: 22px 22px;
-      color: #2a2118;
+      color: var(--ink);
       min-height: 100vh;
       padding: 0 20px 60px;
     }
@@ -23,7 +46,7 @@
 
     header {
       padding: 48px 0 32px;
-      border-bottom: 1px solid #edddd0;
+      border-bottom: 1px solid var(--border);
       margin-bottom: 32px;
     }
     .header-row {
@@ -34,29 +57,30 @@
       gap: 10px;
     }
     header h1 {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Fraunces', serif;
       font-size: 2.6rem;
-      font-weight: 700;
+      font-weight: 600;
       letter-spacing: -0.01em;
-      color: #1e140a;
+      color: var(--ink);
     }
     header p {
       margin-top: 6px;
       font-size: 0.92rem;
-      color: #a8957e;
+      color: var(--ink-soft);
       letter-spacing: 0.04em;
       font-weight: 300;
     }
     .back-link {
       font-size: 0.82rem;
-      color: #b09070;
+      color: var(--ink-soft);
       text-decoration: none;
-      border: 1px solid #e0cfc0;
+      border: 1px solid var(--border);
       border-radius: 20px;
       padding: 5px 14px;
+      font-weight: 500;
       transition: border-color 0.15s, color 0.15s, background 0.15s;
     }
-    .back-link:hover { border-color: #b09070; color: #3d2c1e; background: #fdf5ec; }
+    .back-link:hover { border-color: var(--accent); color: var(--accent-dark); background: var(--accent-soft); }
 
     /* Search */
     .search-wrap {
@@ -65,17 +89,17 @@
     .search-input {
       width: 100%;
       padding: 11px 16px;
-      border: 1px solid #e0cfc0;
+      border: 1px solid var(--border);
       border-radius: 10px;
       font-size: 0.9rem;
-      font-family: 'DM Sans', inherit;
-      background: #fffcf8;
-      color: #2a2118;
+      font-family: 'Plus Jakarta Sans', inherit;
+      background: var(--surface-soft);
+      color: var(--ink);
       outline: none;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .search-input:focus { border-color: #b09070; box-shadow: 0 0 0 3px rgba(176,144,112,0.1); }
-    .search-input::placeholder { color: #c4aa90; }
+    .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,111,89,0.12); }
+    .search-input::placeholder { color: var(--ink-faint); }
 
     /* Sections */
     .section { margin-bottom: 36px; }
@@ -86,12 +110,12 @@
       margin-bottom: 14px;
     }
     .section-header h2 {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Fraunces', serif;
       font-size: 1.2rem;
-      font-weight: 500;
-      color: #1e140a;
+      font-weight: 600;
+      color: var(--ink);
     }
-    .section-count { font-size: 0.78rem; color: #c4aa90; }
+    .section-count { font-size: 0.78rem; color: var(--ink-faint); }
 
     /* Cards */
     .cards {
@@ -101,16 +125,16 @@
     }
 
     .card {
-      background: #fffcf8;
-      border: 1px solid #edddd0;
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
       border-radius: 14px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
-      box-shadow: 0 1px 4px rgba(60,30,10,0.05);
+      box-shadow: 0 1px 4px var(--shadow);
     }
-    .card:hover { border-color: #c8aa90; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(60,30,10,0.1); }
+    .card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: 0 8px 20px var(--shadow-strong); }
 
     .card-swatch {
       position: relative;
@@ -131,23 +155,23 @@
       right: 6px;
       background: rgba(255,255,255,0.85);
       border: none;
-      color: #b8844a;
+      color: var(--accent-gold);
       font-size: 0.6rem;
       font-weight: 600;
-      font-family: 'DM Sans', inherit;
+      font-family: 'Plus Jakarta Sans', inherit;
       letter-spacing: 0.03em;
       cursor: pointer;
       padding: 3px 7px;
       border-radius: 20px;
       transition: color 0.15s, background 0.15s;
     }
-    .card-restore:hover { background: #fff; color: #7a5020; }
+    .card-restore:hover { background: #fff; color: #93590f; }
 
     .card-body { padding: 9px 10px 10px; }
     .card-name {
       font-weight: 600;
       font-size: 0.78rem;
-      color: #1e140a;
+      color: var(--ink);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -160,12 +184,12 @@
       margin-top: 2px;
       flex-wrap: wrap;
     }
-    .card-brand { font-size: 0.7rem; color: #b09070; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
+    .card-brand { font-size: 0.7rem; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
     .card-worn { position: absolute; top: 7px; left: 8px; font-size: 1rem; font-weight: 700; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.35); white-space: nowrap; pointer-events: none; }
     .card-reason {
       margin-top: 5px;
       font-size: 0.68rem;
-      color: #a8957e;
+      color: var(--ink-soft);
       font-style: italic;
       line-height: 1.35;
       display: -webkit-box;
@@ -173,9 +197,9 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
-    .nuuly-bought-badge { font-size: 0.62rem; font-weight: 600; color: #5a2aad; background: #ede8ff; border: 1px solid #c8b8f8; border-radius: 20px; padding: 1px 6px; }
-    .thrift-badge { font-size: 0.62rem; font-weight: 600; color: #8a5a1a; background: #fef3e2; border: 1px solid #f0d098; border-radius: 20px; padding: 1px 6px; }
-    .swap-badge { font-size: 0.62rem; font-weight: 600; color: #2a7a5a; background: #eefaf4; border: 1px solid #b6e8d2; border-radius: 20px; padding: 1px 6px; }
+    .nuuly-bought-badge { font-size: 0.62rem; font-weight: 600; color: var(--accent-purple); background: var(--accent-purple-soft); border: 1px solid #d9c2f7; border-radius: 20px; padding: 1px 6px; }
+    .thrift-badge { font-size: 0.62rem; font-weight: 600; color: var(--accent-gold); background: var(--accent-gold-soft); border: 1px solid #f0cfa0; border-radius: 20px; padding: 1px 6px; }
+    .swap-badge { font-size: 0.62rem; font-weight: 600; color: var(--accent-2); background: var(--accent-2-soft); border: 1px solid #b7e2d2; border-radius: 20px; padding: 1px 6px; }
     .color-dot {
       width: 10px; height: 10px; border-radius: 50%;
       border: 1px solid rgba(255,255,255,0.5);
@@ -184,7 +208,7 @@
 
     .empty-state {
       padding: 48px 0;
-      color: #c4aa90;
+      color: var(--ink-faint);
       font-size: 0.88rem;
       font-weight: 300;
     }
@@ -269,7 +293,7 @@
       const swatchStyle = isGrad ? `background:${swatchCss};` : `background-color:${swatchCss};`
       const worn = !WEAR_UNTRACKED.has(collection) && item.timesWorn != null ? `<span class="card-worn">×${item.timesWorn}</span>` : ''
       const brand = item.brand ? `<span class="card-brand">${escHtml(item.brand)}</span>` : ''
-      const subcolorLabel = sub ? `<span style="font-size:0.68rem;color:#a8957e">${escHtml(sub)}</span>` : ''
+      const subcolorLabel = sub ? `<span style="font-size:0.68rem;color:#8c7291">${escHtml(sub)}</span>` : ''
       const nuulyBought = item.nuulyBought ? `<span class="nuuly-bought-badge">NB</span>` : ''
       const thrift = item.thrift ? `<span class="thrift-badge">Thrift</span>` : ''
       const swap = item.swap ? `<span class="swap-badge">Swap</span>` : ''
