@@ -14,9 +14,21 @@ let db
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 
-MongoClient.connect(MONGO_URI).then(client => {
+MongoClient.connect(MONGO_URI).then(async client => {
   db = client.db(DB_NAME)
   console.log('Connected to MongoDB')
+  // One-time migration: skirts was folded into pants as a single category.
+  // Safe to run on every boot — once the skirts collection is empty/gone, this is a no-op.
+  try {
+    const skirts = await db.collection('skirts').find().toArray()
+    if (skirts.length) {
+      await db.collection('pants').insertMany(skirts)
+      await db.collection('skirts').drop()
+      console.log(`Migrated ${skirts.length} skirt item(s) into pants`)
+    }
+  } catch (err) {
+    console.error('Skirts-to-pants migration failed:', err.message)
+  }
 }).catch(err => {
   console.error('MongoDB connection failed:', err.message)
 })
