@@ -29,6 +29,19 @@ MongoClient.connect(MONGO_URI).then(async client => {
   } catch (err) {
     console.error('Skirts-to-pants migration failed:', err.message)
   }
+  // One-time cleanup: shoes, bags, jackets, and pullovers stopped tracking
+  // wear count, so clear out any timesWorn values left over from before.
+  // Safe to run on every boot — once the field is gone, this is a no-op.
+  try {
+    let cleared = 0
+    for (const collection of ['shoes', 'bags', 'jackets', 'pullovers']) {
+      const result = await db.collection(collection).updateMany({}, { $unset: { timesWorn: '' } })
+      cleared += result.modifiedCount
+    }
+    if (cleared) console.log(`Cleared timesWorn from ${cleared} item(s)`)
+  } catch (err) {
+    console.error('timesWorn cleanup failed:', err.message)
+  }
 }).catch(err => {
   console.error('MongoDB connection failed:', err.message)
 })

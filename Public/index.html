@@ -823,6 +823,10 @@
       }
     }
 
+    function wornSortKey(item) {
+      return WEAR_UNTRACKED.has(item._collection) ? 0 : (item.timesWorn || 0)
+    }
+
     function renderSection(group, data) {
       const { id: groupId, collections } = group
       const isGrouped = collections.length > 1
@@ -835,7 +839,7 @@
         })
       })
       const shown = (activeFilter === 'all' ? allItems : allItems.filter(i => i._collection === activeFilter))
-        .sort((a, b) => (b.timesWorn || 0) - (a.timesWorn || 0))
+        .sort((a, b) => wornSortKey(b) - wornSortKey(a))
 
       const cards = shown.length
         ? shown.map(i => renderCard(i, i._collection)).join('')
@@ -1040,7 +1044,7 @@
           if (!b) return
           if (!brandMap[b]) { brandMap[b] = { count: 0, worn: 0 }; brandItems[b] = [] }
           brandMap[b].count++
-          brandMap[b].worn += item.timesWorn || 0
+          if (!WEAR_UNTRACKED.has(col)) brandMap[b].worn += item.timesWorn || 0
           brandItems[b].push(item.name)
         })
       })
