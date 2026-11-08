@@ -678,6 +678,21 @@
     const LABELS = { pants: 'Pants', shorts: 'Shorts', dresses: 'Dresses', shirts: 'Shirts', pullovers: 'Pull Overs', sweaters: 'Sweaters', jackets: 'Jackets', shoes: 'Shoes', bags: 'Bags' }
     const WEAR_UNTRACKED = new Set(['bags', 'shoes', 'jackets'])
 
+    // Main categories shown on the front page. A group with more than one
+    // collection shows a combined list with filter bubbles to narrow it down
+    // to one subtype, while each subtype still lives in its own Mongo
+    // collection under the hood.
+    const CATEGORY_GROUPS = [
+      { id: 'pants', collections: ['pants'] },
+      { id: 'shirts', collections: ['shirts', 'sweaters'] },
+      { id: 'shorts', collections: ['shorts'] },
+      { id: 'dresses', collections: ['dresses'] },
+      { id: 'pullovers', collections: ['pullovers'] },
+      { id: 'jackets', collections: ['jackets'] },
+      { id: 'shoes', collections: ['shoes'] },
+      { id: 'bags', collections: ['bags'] },
+    ]
+
     const COLOR_MAP = {
       // Neutrals
       black: '#1a1a1a', white: '#f5f5f0', grey: '#9e9e9e', gray: '#9e9e9e',
@@ -795,44 +810,88 @@
       return `${years} year${years === 1 ? '' : 's'}`
     }
 
-    function renderSection(collection, items) {
-      const label = LABELS[collection]
-      const active = items.filter(i => !i.archived).sort((a, b) => (b.timesWorn || 0) - (a.timesWorn || 0))
-      const cards = active.length
-        ? active.map(i => renderCard(i, collection)).join('')
+    let groupFilters = {}
+
+    function setGroupFilter(groupId, value) {
+      groupFilters[groupId] = value
+      renderAll(allData)
+    }
+
+    function onAddTypeChange(groupId) {
+      const typeEl = document.getElementById(`${groupId}-type`)
+      const timesWornEl = document.getElementById(`${groupId}-timesWorn`)
+      if (typeEl && timesWornEl) {
+        timesWornEl.style.display = WEAR_UNTRACKED.has(typeEl.value) ? 'none' : ''
+      }
+    }
+
+    function renderSection(group, data) {
+      const { id: groupId, collections } = group
+      const isGrouped = collections.length > 1
+      const activeFilter = groupFilters[groupId] || 'all'
+
+      const allItems = []
+      collections.forEach(col => {
+        (data[col] || []).filter(i => !i.archived).forEach(item => {
+          allItems.push({ ...item, _collection: col })
+        })
+      })
+      const shown = (activeFilter === 'all' ? allItems : allItems.filter(i => i._collection === activeFilter))
+        .sort((a, b) => (b.timesWorn || 0) - (a.timesWorn || 0))
+
+      const cards = shown.length
+        ? shown.map(i => renderCard(i, i._collection)).join('')
         : `<div class="empty-state">No items yet.</div>`
       const addCard = `
-        <div class="card-add" onclick="toggleAddForm('${collection}')">
+        <div class="card-add" onclick="toggleAddForm('${groupId}')">
           <span class="card-add-icon">+</span>
           <span class="card-add-label">Add item</span>
         </div>`
-      const timesWornInput = !WEAR_UNTRACKED.has(collection)
-        ? `<input type="number" id="${collection}-timesWorn" placeholder="Times worn" min="0" />`
+
+      const bubbles = isGrouped
+        ? `<div class="chart-filters">${[['all', 'All'], ...collections.map(c => [c, LABELS[c]])].map(([val, lbl]) =>
+            `<button class="chart-filter${activeFilter === val ? ' active' : ''}" onclick="setGroupFilter('${groupId}','${val}')">${lbl}</button>`
+          ).join('')}</div>`
         : ''
+
+      const defaultType = collections.includes(activeFilter) ? activeFilter : collections[0]
+      const typeField = isGrouped
+        ? `<select id="${groupId}-type" class="full" onchange="onAddTypeChange('${groupId}')">${collections.map(c =>
+            `<option value="${c}"${c === defaultType ? ' selected' : ''}>${LABELS[c]}</option>`
+          ).join('')}</select>`
+        : ''
+      const timesWornInput = isGrouped
+        ? `<input type="number" id="${groupId}-timesWorn" placeholder="Times worn" min="0" style="${WEAR_UNTRACKED.has(defaultType) ? 'display:none' : ''}" />`
+        : !WEAR_UNTRACKED.has(collections[0])
+          ? `<input type="number" id="${groupId}-timesWorn" placeholder="Times worn" min="0" />`
+          : ''
+
       return `
-        <div class="section collapsed" id="section-${collection}">
-          <div class="section-header" onclick="toggleSection('${collection}')">
-            <h2>${label}<span class="section-chevron">▾</span></h2>
-            <span class="section-count">${active.length} item${active.length !== 1 ? 's' : ''}</span>
+        <div class="section collapsed" id="section-${groupId}">
+          <div class="section-header" onclick="toggleSection('${groupId}')">
+            <h2>${LABELS[groupId]}<span class="section-chevron">▾</span></h2>
+            <span class="section-count">${allItems.length} item${allItems.length !== 1 ? 's' : ''}</span>
           </div>
+          ${bubbles}
           <div class="cards">${cards}${addCard}</div>
-          <div class="add-form" id="add-form-${collection}">
+          <div class="add-form" id="add-form-${groupId}">
             <div class="form-grid">
-              <input type="text" id="${collection}-name" placeholder="Name (required)" required class="full" />
-              <input type="text" id="${collection}-color" placeholder="Main color (e.g. green)" required />
-              <input type="text" id="${collection}-subcolor" placeholder="Subcolor (e.g. lime green)" />
-              <input type="text" id="${collection}-brand" placeholder="Brand" />
+              ${typeField}
+              <input type="text" id="${groupId}-name" placeholder="Name (required)" required class="full" />
+              <input type="text" id="${groupId}-color" placeholder="Main color (e.g. green)" required />
+              <input type="text" id="${groupId}-subcolor" placeholder="Subcolor (e.g. lime green)" />
+              <input type="text" id="${groupId}-brand" placeholder="Brand" />
               ${timesWornInput}
-              <input type="text" id="${collection}-notes" placeholder="Notes" class="full" />
+              <input type="text" id="${groupId}-notes" placeholder="Notes" class="full" />
             </div>
             <div style="display:flex;gap:16px;flex-wrap:wrap;">
-              <label class="check-label"><input type="checkbox" id="${collection}-nuulyBought" /> Nuuly Bought</label>
-              <label class="check-label"><input type="checkbox" id="${collection}-thrift" /> Thrift</label>
-              <label class="check-label"><input type="checkbox" id="${collection}-swap" /> Swap</label>
+              <label class="check-label"><input type="checkbox" id="${groupId}-nuulyBought" /> Nuuly Bought</label>
+              <label class="check-label"><input type="checkbox" id="${groupId}-thrift" /> Thrift</label>
+              <label class="check-label"><input type="checkbox" id="${groupId}-swap" /> Swap</label>
             </div>
             <div class="form-actions">
-              <button class="btn-submit" onclick="addItem('${collection}')">Add</button>
-              <button class="btn-cancel" onclick="toggleAddForm('${collection}')">Cancel</button>
+              <button class="btn-submit" onclick="addItem('${groupId}')">Add</button>
+              <button class="btn-cancel" onclick="toggleAddForm('${groupId}')">Cancel</button>
             </div>
           </div>
         </div>`
@@ -841,44 +900,46 @@
     let allData = Object.fromEntries(COLLECTIONS.map(c => [c, []]))
 
     function renderAll(data) {
-      const openSections = COLLECTIONS.filter(c => {
-        const el = document.getElementById(`section-${c}`)
+      const openSections = CATEGORY_GROUPS.filter(g => {
+        const el = document.getElementById(`section-${g.id}`)
         return el && !el.classList.contains('collapsed')
-      })
+      }).map(g => g.id)
       document.getElementById('sections').innerHTML =
-        COLLECTIONS.map(c => renderSection(c, data[c] || [])).join('')
-      openSections.forEach(c => {
-        document.getElementById(`section-${c}`).classList.remove('collapsed')
+        CATEGORY_GROUPS.map(g => renderSection(g, data)).join('')
+      openSections.forEach(id => {
+        document.getElementById(`section-${id}`).classList.remove('collapsed')
       })
     }
 
-    function toggleSection(collection) {
-      document.getElementById(`section-${collection}`).classList.toggle('collapsed')
+    function toggleSection(groupId) {
+      document.getElementById(`section-${groupId}`).classList.toggle('collapsed')
     }
 
-    function toggleAddForm(collection) {
-      document.getElementById(`add-form-${collection}`).classList.toggle('open')
+    function toggleAddForm(groupId) {
+      document.getElementById(`add-form-${groupId}`).classList.toggle('open')
     }
 
-    async function addItem(collection) {
-      const nameEl = document.getElementById(`${collection}-name`)
+    async function addItem(groupId) {
+      const nameEl = document.getElementById(`${groupId}-name`)
       if (!nameEl.value.trim()) {
         nameEl.style.borderColor = '#e05'
         return
       }
       nameEl.style.borderColor = ''
-      const colorVal = document.getElementById(`${collection}-color`).value.trim()
-      const timesWornEl = document.getElementById(`${collection}-timesWorn`)
+      const typeEl = document.getElementById(`${groupId}-type`)
+      const collection = typeEl ? typeEl.value : groupId
+      const colorVal = document.getElementById(`${groupId}-color`).value.trim()
+      const timesWornEl = document.getElementById(`${groupId}-timesWorn`)
       const body = {
         name: nameEl.value.trim(),
         color: colorVal ? [colorVal] : undefined,
-        subcolor: document.getElementById(`${collection}-subcolor`).value.trim() || undefined,
-        brand: document.getElementById(`${collection}-brand`).value.trim() || undefined,
-        timesWorn: timesWornEl && timesWornEl.value ? parseInt(timesWornEl.value) : 0,
-        notes: document.getElementById(`${collection}-notes`).value.trim() || undefined,
-        nuulyBought: document.getElementById(`${collection}-nuulyBought`).checked || undefined,
-        thrift: document.getElementById(`${collection}-thrift`).checked || undefined,
-        swap: document.getElementById(`${collection}-swap`).checked || undefined,
+        subcolor: document.getElementById(`${groupId}-subcolor`).value.trim() || undefined,
+        brand: document.getElementById(`${groupId}-brand`).value.trim() || undefined,
+        timesWorn: timesWornEl && timesWornEl.value && !WEAR_UNTRACKED.has(collection) ? parseInt(timesWornEl.value) : 0,
+        notes: document.getElementById(`${groupId}-notes`).value.trim() || undefined,
+        nuulyBought: document.getElementById(`${groupId}-nuulyBought`).checked || undefined,
+        thrift: document.getElementById(`${groupId}-thrift`).checked || undefined,
+        swap: document.getElementById(`${groupId}-swap`).checked || undefined,
       }
       const res = await fetch(`/api/${collection}`, {
         method: 'POST',
